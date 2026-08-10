@@ -1,0 +1,27 @@
+Slide -- RES: Remote Emergency System
+
+- Mandatory FS driverless safety system: a radio remote held by a track
+  marshal with two functions -- an E-stop that fires the on-board Emergency
+  Brake System, and a GO that gives the final human authorization to start
+  a run.
+
+- Fail-safe: the radio link is continuously monitored -- lost link =
+  automatic EBS. A human outside the car can always stop it.
+
+- In our platform: the simulated VCU state machine reproduces this
+  contract -- a virtual RES panel in Foxglove sends GO (AS READY -> AS
+  DRIVING), and an /ebs ROS 2 service plays the E-stop (-> EMERGENCY_BRAKE).
+
+- Our controllers gate on the AS state: they command the car only while
+  DRIVING and stop the instant that state is lost -- so an RES stop is
+  obeyed by construction, and the identical code obeys the real RES
+  hardware on a real car.
+
+
+Speaker note (optional):
+The RES exists because an autonomous car has no driver to hit the brakes,
+so the rules move that authority outside the car, into a marshal's hand.
+In our platform we kept that authority structure intact in simulation: our
+controllers never decide when they're allowed to drive; the state machine
+tells them, and the virtual RES commands the state machine. That's why the
+same code can obey the real RES on a real car without modification.

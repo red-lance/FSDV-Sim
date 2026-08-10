@@ -1,0 +1,132 @@
+PRESENTATION NOTES -- Acceleration controller + RES
+====================================================
+
+HOW TO SAY IT: ACCELERATION EVENT (speak ~60-90 seconds)
+--------------------------------------------------------
+
+"The Acceleration event is the simplest event in Formula Student
+Driverless: the car starts from a standstill, drives 75 metres in a
+straight line as fast as it safely can, and then must brake to a
+complete stop on its own. No steering challenge -- it purely tests
+whether the car can launch, hold speed, and stop reliably with nobody
+inside it.
+
+Our controller for this event does three jobs.
+
+First, it WAITS FOR PERMISSION. It never just starts driving. It
+listens to the car's state machine, and only engages when two things
+are true: the ACCELERATION mission has been selected, and the car has
+been put into DRIVING state -- which only happens after the GO
+command. Until then it publishes nothing.
+
+Second, it DRIVES -- like cruise control. Fifty times a second it
+reads the car's actual speed from odometry and compares it with the
+target, 8 metres per second. Going too slow, it commands more
+acceleration; too fast, it eases off. The correction is proportional
+to the error -- a classic feedback loop, the same idea as cruise
+control in any road car. This matters because you cannot tell a car
+'go at 8 m/s' -- a real car only understands throttle and brake. So
+our controller speaks that language: it commands acceleration, and
+the feedback loop is what turns that into steady speed.
+
+Third, it STOPS. It measures distance travelled from the launch
+point, and the moment it crosses 75 metres it switches the target
+speed to zero -- the same feedback loop now brakes the car. Once
+stopped, it holds the brake so the car cannot roll.
+
+And one safety property throughout: if the car ever leaves DRIVING
+state -- for example an emergency stop -- the controller goes silent
+immediately. It is not allowed to want to drive; the state machine
+decides, the controller obeys.
+
+We verified this in a closed-loop test: the car holds 8 m/s within a
+tenth of a metre per second, brakes exactly at the 75-metre line, and
+comes to a dead stop about 9 metres later -- which matches the
+physics prediction for its braking rate."
+
+
+HOW TO SAY IT: RES (speak ~45-60 seconds)
+------------------------------------------
+
+"An autonomous race car has no driver, so there is nobody inside to
+hit the brakes. Formula Student solves this with the RES -- the
+Remote Emergency System. It is a radio remote in the hand of a track
+marshal, with two buttons: an emergency stop, which makes the car
+brake itself immediately, and a GO button, which is the final human
+authorization for the car to start moving. It is fail-safe: the radio
+link is monitored continuously, and if the car ever loses the signal,
+it stops automatically. No signal, no motion.
+
+In our platform the RES exists virtually. A panel in our
+visualization tool acts as the marshal's remote: pressing GO moves
+the car's state machine from READY to DRIVING, and the emergency stop
+throws it into EMERGENCY_BRAKE. Our controllers are built around
+this: they are only allowed to command the car while the state is
+DRIVING, and they stop the instant that state is lost. So an
+emergency stop is obeyed by construction -- and because the interface
+is just the state machine, the identical code will obey the real RES
+hardware on a real car, unchanged."
+
+
+SLIDE BULLETS (if you want them on screen)
+-------------------------------------------
+
+Acceleration controller:
+- FS Acceleration event: standstill -> 75 m straight -> autonomous stop
+- Waits for permission: engages only on mission = ACCELERATION + state = DRIVING
+- Drives like cruise control: feedback loop on measured speed, 50x per second
+  (car only understands acceleration commands -- speed is OUR loop's job)
+- Stops itself: at 75 m the same loop brakes to zero and holds the brake
+- Verified: holds 8 m/s, brakes on the line, dead stop ~9 m later (matches physics)
+
+RES:
+- No driver on board -> the emergency stop lives OUTSIDE the car
+- Marshal's radio remote: E-stop (fires the brakes) + GO (final human authorization)
+- Fail-safe: lost radio link = automatic stop
+- Ours is virtual: Foxglove panel sends GO / E-stop into the sim's state machine;
+  controllers only act while DRIVING -- same code obeys real RES hardware unchanged
+
+
+LIKELY QUESTIONS + SHORT ANSWERS (Q&A insurance)
+-------------------------------------------------
+
+Q: Why only proportional control -- why not PID?
+A: We tested it: the car holds the target speed steadily with no
+   offset and no oscillation, and stops cleanly. Integral and
+   derivative terms fix problems we measured we don't have. If the
+   real vehicle shows steady-state error or overshoot, adding them is
+   a two-line change.
+
+Q: Why 8 m/s? Isn't that slow?
+A: It's a parameter, chosen conservatively to validate the pipeline.
+   The goal at this stage is correctness, not lap time -- raising it
+   is a one-line config change.
+
+Q: How does it know it has gone 75 metres?
+A: It latches its start position the moment DRIVING begins and
+   integrates distance from odometry. Crossing 75 m flips it into
+   braking mode permanently for that run.
+
+Q: What if the emergency stop is pressed mid-run?
+A: The state machine leaves DRIVING, our controller stops publishing
+   commands that same instant, and the simulator's emergency brake
+   stops the car. The controller can't override it -- it is gated on
+   the state, not just informed of it.
+
+Q: How did you verify it without real hardware?
+A: A closed-loop test harness with a substitute physics model -- the
+   controller can't tell the difference. It held 8 m/s, braked at
+   75 m, stopped at ~84 m. Braking from 8 m/s at 4 m/s^2 predicts
+   v^2/2a = 8 m of stopping distance, so the measurement matches the
+   physics. Then the same controller runs in the full simulator.
+
+Q: Will this work on the real car / Jetson?
+A: Yes -- the controller only talks ROS 2 topics (odometry in,
+   acceleration + steering out, state machine for permission). On
+   real hardware the same topics come from the real VCU and state
+   estimation; the controller code doesn't change. That's the whole
+   point of the platform.
+
+Q: Can holding the brake make the car roll backwards?
+A: No -- the vehicle model clamps braking to zero once the car is
+   stationary, so a held brake command cannot reverse it.

@@ -1,0 +1,16 @@
+skidpad_driver:
+  ros__parameters:
+    mission: SKIDPAD         # AMIState this node responds to
+    entry_distance: 9.8      # m, start pose -> crossing point (from skidpad.csv car_start)
+    circle_radius: 9.25      # m, driving line radius (circle centers at +/-9.25)
+    laps_per_circle: 2
+    exit_distance: 22.0      # m past the crossing before braking (finish gate at 21)
+    target_speed: 4.5        # m/s -- lateral accel v^2/R stays under ~2.2 m/s^2
+    accel_limit: 3.0         # m/s^2 max forward command
+    brake_limit: 4.0         # m/s^2 max braking magnitude
+    kp: 1.5                  # acceleration command per m/s of speed error
+    lookahead: 3.0           # m, pure pursuit lookahead
+    wheelbase: 1.53          # m, ads-dv kinematic.l
+    steer_limit: 0.35        # rad (model input range is +/-0.37)
+    stop_speed: 0.1          # m/s below which the run counts as stopped
+    brake_hold: 1.0          # m/s^2 held once stopped

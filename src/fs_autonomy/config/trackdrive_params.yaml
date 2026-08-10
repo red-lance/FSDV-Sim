@@ -1,0 +1,21 @@
+trackdrive_driver:
+  ros__parameters:
+    mission: TRACK_DRIVE     # AMIState this node responds to
+    cones_topic: /cones/lenient  # sim's fused /cones is never published (upstream bug)
+    laps: 10                 # FS trackdrive distance
+    target_speed: 4.0        # m/s on straights
+    min_speed: 1.5           # m/s floor in the tightest corners
+    max_cone_range: 14.0     # m, ignore detections beyond this
+    min_target_dist: 2.0     # m, skip pair midpoints closer than this
+    half_track: 1.75         # m, offset when only one side is visible
+    cone_timeout: 0.5        # s without cones -> slow + hold steering
+    blind_stop_time: 2.0     # s without cones -> brake to a stop
+    lap_arm_distance: 10.0   # m from start to arm the lap counter
+    lap_close_distance: 4.0  # m from start to count a lap
+    accel_limit: 3.0
+    brake_limit: 4.0
+    kp: 1.5
+    wheelbase: 1.53
+    steer_limit: 0.35
+    stop_speed: 0.1
+    brake_hold: 1.0

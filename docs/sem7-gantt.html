@@ -1,0 +1,163 @@
+<title>Sem 7 Gantt — FS Driverless Platform</title>
+<style>
+  :root {
+    --paper: #FFFFFF;
+    --ink: #1D2833;
+    --ink-2: #4A5A6A;
+    --rule: #9AA7B2;
+    --head-bg: #2E5D8F;
+    --head-ink: #FFFFFF;
+    --fill: #A9C7E8;
+    --title: #2F6DB5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #141A22; --ink: #E8EDF3; --ink-2: #AEBBC8; --rule: #46525F;
+      --head-bg: #23486E; --head-ink: #E8EDF3; --fill: #3E6A99; --title: #7FB0E0;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #141A22; --ink: #E8EDF3; --ink-2: #AEBBC8; --rule: #46525F;
+    --head-bg: #23486E; --head-ink: #E8EDF3; --fill: #3E6A99; --title: #7FB0E0;
+  }
+  :root[data-theme="light"] {
+    --paper: #FFFFFF; --ink: #1D2833; --ink-2: #4A5A6A; --rule: #9AA7B2;
+    --head-bg: #2E5D8F; --head-ink: #FFFFFF; --fill: #A9C7E8; --title: #2F6DB5;
+  }
+
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: "Segoe UI", "Helvetica Neue", Arial, system-ui, sans-serif;
+    margin: 0; padding: 30px 26px 44px;
+  }
+  .sheet { max-width: 1180px; margin: 0 auto; }
+
+  h1 {
+    text-align: center; color: var(--title);
+    font-size: 26px; font-weight: 500; margin: 0 0 6px;
+    text-wrap: balance;
+  }
+  .subtitle {
+    text-align: center; font-family: Georgia, "Times New Roman", serif;
+    font-style: italic; font-size: 15px; margin: 0 0 22px; color: var(--ink);
+  }
+  .meta { font-size: 14.5px; margin: 0 0 4px; }
+  .meta b { font-weight: 700; }
+  .meta:last-of-type { margin-bottom: 18px; }
+
+  .gantt-wrap { overflow-x: auto; }
+  table {
+    border-collapse: collapse; table-layout: fixed;
+    width: 1128px; font-size: 12.5px;
+  }
+  col.task { width: 300px; }
+  col.wk { width: 69px; }
+
+  thead th {
+    background: var(--head-bg); color: var(--head-ink);
+    font-weight: 700; padding: 6px 4px; text-align: center;
+    border: 1px solid var(--rule);
+    font-variant-numeric: tabular-nums;
+  }
+  thead th.task-h { text-align: center; }
+
+  tbody th, tbody td { border: 1px solid var(--rule); }
+  tbody th.task {
+    text-align: left; font-weight: 400; color: var(--ink);
+    padding: 6px 9px; line-height: 1.32; background: var(--paper);
+  }
+  tbody td { height: 40px; background: var(--paper); }
+  tbody td.f { background: var(--fill); }
+
+  @media print {
+    body { padding: 8px; }
+    .gantt-wrap { overflow: visible; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+
+<div class="sheet">
+  <h1>Autonomous Vehicle using LiDAR and Depth Camera</h1>
+  <p class="subtitle">12-Week Project Plan (Semester 7) — K. J. Somaiya School of Engineering</p>
+  <p class="meta"><b>Team:</b> Rishi Satish, Harshvardhan Singh, Ayon Majumdar</p>
+  <p class="meta"><b>Faculty Guide:</b> Dr. Makarand Govind Kulkarni</p>
+
+  <div class="gantt-wrap">
+  <table>
+    <colgroup>
+      <col class="task">
+      <col class="wk"><col class="wk"><col class="wk"><col class="wk"><col class="wk"><col class="wk">
+      <col class="wk"><col class="wk"><col class="wk"><col class="wk"><col class="wk"><col class="wk">
+    </colgroup>
+    <thead>
+      <tr>
+        <th class="task-h">Task</th>
+        <th>W1</th><th>W2</th><th>W3</th><th>W4</th><th>W5</th><th>W6</th>
+        <th>W7</th><th>W8</th><th>W9</th><th>W10</th><th>W11</th><th>W12</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th class="task">Simulation environment bring-up: eufs_sim2 + Foxglove toolchain on Ubuntu 22.04 / ROS 2 Humble; visualization &amp; startup diagnostics</th>
+        <td class="f"></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+      </tr>
+      <tr>
+        <th class="task">Audit eufs_sim2 architecture — control input path, cone pipeline, VCU state machine (deliverable: interface audit doc)</th>
+        <td class="f"></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+      </tr>
+      <tr>
+        <th class="task">Design fs_autonomy workspace: topic contracts, sim-containment rules, mission-gated launch orchestration</th>
+        <td></td><td class="f"></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+      </tr>
+      <tr>
+        <th class="task">Odometry-based mission controllers: ACCELERATION (closed-loop speed) and SKIDPAD (figure-8 pure pursuit)</th>
+        <td></td><td></td><td class="f"></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+      </tr>
+      <tr>
+        <th class="task">Perception-based mission controllers: TRACK_DRIVE and AUTOCROSS (cone-pair midpoint steering from /cones)</th>
+        <td></td><td></td><td></td><td class="f"></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+      </tr>
+      <tr>
+        <th class="task">Closed-loop verification harnesses for every mission (fake vehicle physics + FoV-limited sensor models)</th>
+        <td></td><td></td><td></td><td class="f"></td><td class="f"></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td><td></td>
+      </tr>
+      <tr>
+        <th class="task">Full-simulation validation of all four missions on sim track maps</th>
+        <td></td><td></td><td></td><td></td><td></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td><td></td>
+      </tr>
+      <tr>
+        <th class="task">CI regression suite: headless pass/fail harness runs on every commit</th>
+        <td></td><td></td><td></td><td></td><td></td><td class="f"></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td>
+      </tr>
+      <tr>
+        <th class="task">Robustness evaluation: Monte-Carlo sweeps (cone dropout / shift / recolour, sensor noise &amp; failure) → success-rate graphs</th>
+        <td></td><td></td><td></td><td></td><td></td><td></td><td class="f"></td><td class="f"></td><td></td><td></td><td></td><td></td>
+      </tr>
+      <tr>
+        <th class="task">Interface contract document: raw sensor layer ↔ object layer (topics, types, frames, rates) — deliverable</th>
+        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="f"></td><td class="f"></td><td></td><td></td><td></td>
+      </tr>
+      <tr>
+        <th class="task">NVIDIA Jetson procurement &amp; JetPack 6 bring-up — parallel hardware track</th>
+        <td></td><td></td><td></td><td></td><td class="f"></td><td class="f"></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td>
+      </tr>
+      <tr>
+        <th class="task">Embedded deployment: arm64 image; sim on laptop ↔ autonomy stack on Jetson; latency &amp; resource benchmarking</th>
+        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="f"></td><td class="f"></td><td></td><td></td>
+      </tr>
+      <tr>
+        <th class="task">Presentation slides &amp; demo: develop → verify → deploy narrative, ROS 2 architecture, Foxglove</th>
+        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="f"></td><td></td><td></td>
+      </tr>
+      <tr>
+        <th class="task">Bug fixing, upstream merge requests (eufs_sim2 fixes), buffer</th>
+        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="f"></td><td class="f"></td><td></td><td></td>
+      </tr>
+      <tr>
+        <th class="task">Final report compilation, guide review, Sem 7 submission</th>
+        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="f"></td><td class="f"></td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+</div>

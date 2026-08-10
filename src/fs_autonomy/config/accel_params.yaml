@@ -1,0 +1,11 @@
+accel_driver:
+  ros__parameters:
+    mission: ACCELERATION    # AMIState this node responds to
+    target_speed: 8.0        # m/s held during the run
+    finish_distance: 75.0    # m from start before braking (FS acceleration = 75 m)
+    accel_limit: 3.0         # m/s^2 max forward command (model clamps at ~5.2)
+    brake_limit: 4.0         # m/s^2 max braking magnitude
+    kp: 1.5                  # acceleration command per m/s of speed error
+    stop_speed: 0.1          # m/s below which the run counts as stopped
+    brake_hold: 1.0          # m/s^2 held once stopped (model zeroes it at v<=0)
+    publish_rate: 50.0       # Hz
