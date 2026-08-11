@@ -166,8 +166,45 @@ output, then Ctrl+R in Foxglove.
 - New message dependencies that only the sim publishes, unless they are pure
   `_msgs` packages that can be cloned onto the target (like `eufs_msgs`).
 
-## Next
+## Monte-Carlo sweeps (perception robustness)
 
-Trackdrive controller: same skeleton as `accel_driver`, but subscribe to
-`/cones` (`eufs_msgs/ConeWithColorProbabilityArray`), take the midpoint of the
-nearest blue/yellow pair, steer toward it via `drive.steering_angle`.
+`sil_trackdrive` has a parameterized sensor error model; `scripts/run_sweeps.py`
+batch-runs seeded episodes against `trackdrive_driver` and writes one CSV row
+per episode. Always from a sourced shell:
+
+```bash
+cd ~/autonomy_ws
+source /opt/ros/humble/setup.bash
+source ~/eufs/install/setup.bash
+source install/setup.bash
+
+# sanity check: one clean episode, ~35 s
+python3 scripts/run_sweeps.py --episodes 1 --speed 3
+
+# a real sweep: 5 points x 20 seeded episodes (~1 h at 3x realtime)
+python3 scripts/run_sweeps.py --episodes 20 --speed 3 \
+    --sweep p_detect_scale=1.0,0.8,0.6,0.4,0.2 --out dropout.csv
+
+# turn the CSV into the report graph (success rate + path deviation)
+python3 scripts/plot_sweeps.py dropout.csv --x p_detect_scale
+```
+
+Sweepable error-model knobs (harness params): `p_detect_scale`,
+`bearing_noise_deg`, `range_noise_frac`, `color_flip_prob`,
+`false_positives_per_frame`, `latency_frames`, `sensor_range`,
+`sensor_fov_deg`. Driver params (e.g. `target_speed`, `laps`) can be swept
+the same way. Repeat `--sweep` for a grid; `--fixed k=v` pins a value.
+
+With a measured detector profile (from `scripts/extract_error_profile.py`,
+run wherever the model + dataset live):
+
+```bash
+python3 scripts/run_sweeps.py --episodes 20 --speed 3 \
+    --profile perception/error_profile.json \
+    --sweep p_detect_scale=1.0,0.8,0.6,0.4 --out yolo.csv
+```
+
+Notes: episodes are sequential on ROS_DOMAIN_ID 60, so a running sim doesn't
+interfere -- but close it anyway to keep CPU free; `--speed 3` is validated
+against realtime on this VM, don't push it higher here. An episode PASSES
+when laps >= `--laps` (default 3), `cones_hit == 0`, and the car ends stopped.
