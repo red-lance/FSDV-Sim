@@ -16,7 +16,7 @@ final_x past entry+exit distance, final_v = 0.000.
 Run against the driver (two terminals, no sim required):
 
     ros2 run fs_autonomy skidpad_driver
-    ros2 run fs_autonomy fake_skidpad
+    ros2 run fs_autonomy sil_skidpad
 """
 
 import math
@@ -39,9 +39,9 @@ CROSS_X = 9.8
 RADIUS = 9.25
 
 
-class FakeSkidpad(Node):
+class SilSkidpad(Node):
     def __init__(self):
-        super().__init__("fake_skidpad")
+        super().__init__("sil_skidpad")
         self.x = 0.0
         self.y = 0.0
         self.yaw = 0.0
@@ -124,7 +124,7 @@ def wrapped_net(yaw):
 
 def main():
     rclpy.init()
-    node = FakeSkidpad()
+    node = SilSkidpad()
     try:
         rclpy.spin(node)
     except (KeyboardInterrupt, rclpy.executors.ExternalShutdownException):

@@ -20,7 +20,7 @@ software* to the car's computer (Jetson) unchanged.
 > **Develop → Verify → Deploy.** Every piece of work is one leg of that tripod.
 
 - Controllers = the platform's **proof of use** (reference implementations).
-- Fake harnesses = its **proof of correctness** (cheap, repeatable closed loop).
+- SIL harnesses (software-in-the-loop) = its **proof of correctness** (cheap, repeatable closed loop).
 - Containment rules + Docker = its **proof of portability** (sim-free deploy).
 
 One-liner for report/viva: *"Simulators, stacks, and datasets all exist online —
@@ -38,16 +38,16 @@ Done and verified (numbers you can quote):
 
 | Piece | Verified result |
 |---|---|
-| `accel_driver` | Holds 8 m/s, brakes at 75 m, dead stop ~84 m (matches v²/2a = 8 m physics) — fake_sim + full sim |
-| `skidpad_driver` | 5 cm max radial error, exact 8π of turning, clean stop — vs fake_skidpad bicycle model |
-| `trackdrive_driver` | 3/3 laps, 0.10 m max deviation, 0 cones hit — vs fake_trackdrive (92 m circuit, 110°/15 m/15 Hz sensor) |
+| `accel_driver` | Holds 8 m/s, brakes at 75 m, dead stop ~84 m (matches v²/2a = 8 m physics) — sil_accel + full sim |
+| `skidpad_driver` | 5 cm max radial error, exact 8π of turning, clean stop — vs sil_skidpad bicycle model |
+| `trackdrive_driver` | 3/3 laps, 0.10 m max deviation, 0 cones hit — vs sil_trackdrive (92 m circuit, 110°/15 m/15 Hz sensor) |
 | Upstream bug 1 | `/cmd` consumes ONLY drive.acceleration + steering_angle; drive.speed silently ignored (eufs_sim2 control.cpp) |
 | Upstream bug 2 | Fused `/cones` advertised but NEVER published (cone_fusion.cpp); real feed is `/cones/lenient` |
 
 Also done: mission-gated launch orchestration (`autonomy.launch.py` — sim never
 launches user code; controllers self-gate on `AMIState`), multi-arch Dockerfile,
 `scripts/check_bridge.py` diagnostics, DDS-isolation testing doctrine
-(**always** run fake-harness tests under isolated `ROS_DOMAIN_ID`, e.g. 42).
+(**always** run SIL-harness tests under isolated `ROS_DOMAIN_ID`, e.g. 42).
 
 Not yet done at time of writing: skidpad/trackdrive/autocross validation runs in
 the FULL sim (harness-verified only); everything in §4.
@@ -65,7 +65,7 @@ benchmarks W9–10, presentation W10, upstream MRs + buffer W9–10, report W11�
 ## 4. Remaining work — the agreed roadmap, with the ideas fleshed out
 
 ### 4.1 CI regression suite
-Wrap each fake-harness run in a script with pass/fail exit codes
+Wrap each SIL-harness run in a script with pass/fail exit codes
 (`run_tests.sh`): launch harness + controller under an isolated
 `ROS_DOMAIN_ID`, assert the mission-complete condition within a timeout
 (accel: stopped past 75 m; skidpad: 8π + stop; trackdrive: N laps, 0 collisions).
@@ -74,7 +74,7 @@ Run inside the existing Docker image → works on any CI runner
 already runs, not new construction.
 
 ### 4.2 Monte-Carlo robustness sweeps (the report's results chapter)
-**STATUS 2026-08-11: machinery BUILT and verified.** fake_trackdrive now has a
+**STATUS 2026-08-11: machinery BUILT and verified.** sil_trackdrive now has a
 parameterized error model (per-range P(detect), bearing/range noise, color
 flips, false positives, latency frames, seeded RNG, realtime_factor) that can
 load `error_profile.json` from scripts/extract_error_profile.py directly.
@@ -155,7 +155,7 @@ ground removal → clustering → cone filter. Labeled data: record own bags
 (e.g. AMZ Driverless), or Gazebo Velodyne. Measure vs range: P(detect|r)
 (cliff when point count/cone gets small), position σ, FP/scan, latency.
 Inject: distance-dependent dropout + Gaussian position noise + spurious cones
-+ publish delay in fake_trackdrive's sensor model (our code, easy to extend);
++ publish delay in sil_trackdrive's sensor model (our code, easy to extend);
 `colour: false` downstream. The structural result: trackdrive steers on
 blue-left/yellow-right, LiDAR has no colour ⇒ sweeps expose the fusion
 requirement (camera = colour near, lidar = geometry far) — and the fusion

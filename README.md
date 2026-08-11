@@ -22,7 +22,7 @@ workspace can be copied to an arm64 target and built there unchanged.
 | `skidpad_driver` | SKIDPAD mission: odom-based figure-8 (pure pursuit), geometry from the rules/map | std/nav/ackermann msgs only |
 | `trackdrive_driver` | TRACK_DRIVE + AUTOCROSS: steers from `/cones` (nearest blue/yellow pair midpoint), laps counted from odom | `eufs_msgs` |
 | `cone_viz` | republishes `ConeWithColorProbabilityArray` cone topics as MarkerArrays for Foxglove/RViz | `eufs_msgs` |
-| `fake_sim` / `fake_skidpad` / `fake_trackdrive` | closed-loop test harnesses replacing the sim (1D / bicycle / bicycle + FoV-limited cone sensor) | std/nav/ackermann + `eufs_msgs` |
+| `sil_accel` / `sil_skidpad` / `sil_trackdrive` | closed-loop test harnesses replacing the sim (1D / bicycle / bicycle + FoV-limited cone sensor) | std/nav/ackermann + `eufs_msgs` |
 
 `trackdrive_driver` is the perception-socket proof: it never reads the map or
 uses odometry for geometry -- steering comes entirely from car-relative cone
@@ -79,13 +79,13 @@ no-sim smoke tests of the control loops (work on the Jetson too):
 export ROS_DOMAIN_ID=42             # in BOTH terminals -- see below
 
 ros2 run fs_autonomy accel_driver   # terminal 1
-ros2 run fs_autonomy fake_sim       # terminal 2 -- RESULT line after 40 s
+ros2 run fs_autonomy sil_accel       # terminal 2 -- RESULT line after 40 s
 
 ros2 run fs_autonomy skidpad_driver # terminal 1
-ros2 run fs_autonomy fake_skidpad   # terminal 2 -- RESULT line after 100 s
+ros2 run fs_autonomy sil_skidpad   # terminal 2 -- RESULT line after 100 s
 
 ros2 run fs_autonomy trackdrive_driver --ros-args -p laps:=3   # terminal 1
-ros2 run fs_autonomy fake_trackdrive                           # terminal 2 -- RESULT when stopped (~95 s)
+ros2 run fs_autonomy sil_trackdrive                           # terminal 2 -- RESULT when stopped (~95 s)
 ```
 
 **Always run harness tests in their own `ROS_DOMAIN_ID`.** DDS is a shared

@@ -14,7 +14,7 @@ Run it against the driver (two terminals, no sim required -- works on the
 Jetson too):
 
     ros2 run fs_autonomy accel_driver
-    ros2 run fs_autonomy fake_sim
+    ros2 run fs_autonomy sil_accel
 """
 import math
 import sys
@@ -29,9 +29,9 @@ DT = 0.02
 DURATION = 40.0
 
 
-class FakeSim(Node):
+class SilAccel(Node):
     def __init__(self):
-        super().__init__("fake_sim")
+        super().__init__("sil_accel")
         self.x = 0.0
         self.v = 0.0
         self.a = 0.0
@@ -93,7 +93,7 @@ class FakeSim(Node):
 
 def main():
     rclpy.init()
-    node = FakeSim()
+    node = SilAccel()
     try:
         rclpy.spin(node)
     except (KeyboardInterrupt, rclpy.executors.ExternalShutdownException):

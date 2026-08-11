@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Monte-Carlo sweep runner: trackdrive_driver vs fake_trackdrive, many times.
+"""Monte-Carlo sweep runner: trackdrive_driver vs sil_trackdrive, many times.
 
 For every parameter combination it runs N seeded episodes (driver + harness
 as subprocesses on an isolated ROS_DOMAIN_ID), parses the harness RESULT
@@ -43,7 +43,7 @@ DRIVER_PARAMS = {
     "stop_speed", "brake_hold", "tick_rate",
 }
 INT_PARAMS = {"laps", "seed", "latency_frames"}
-TIME_CAP = 240.0  # keep in sync with fake_trackdrive.py
+TIME_CAP = 240.0  # keep in sync with sil_trackdrive.py
 
 
 def parse_args():
@@ -111,7 +111,7 @@ def run_episode(cfg, seed, args, env):
     driver = spawn(["ros2", "run", "fs_autonomy", "trackdrive_driver"]
                    + ros_args(driver_p), env)
     time.sleep(2.0)  # let the driver come up and subscribe
-    harness = spawn(["ros2", "run", "fs_autonomy", "fake_trackdrive"]
+    harness = spawn(["ros2", "run", "fs_autonomy", "sil_trackdrive"]
                     + ros_args(harness_p), env, capture=True)
 
     result = None

@@ -28,9 +28,9 @@ setup(
             "skidpad_driver = fs_autonomy.skidpad_driver:main",
             "trackdrive_driver = fs_autonomy.trackdrive_driver:main",
             "cone_viz = fs_autonomy.cone_viz:main",
-            "fake_sim = fs_autonomy.fake_sim:main",
-            "fake_skidpad = fs_autonomy.fake_skidpad:main",
-            "fake_trackdrive = fs_autonomy.fake_trackdrive:main",
+            "sil_accel = fs_autonomy.sil_accel:main",
+            "sil_skidpad = fs_autonomy.sil_skidpad:main",
+            "sil_trackdrive = fs_autonomy.sil_trackdrive:main",
         ],
     },
 )

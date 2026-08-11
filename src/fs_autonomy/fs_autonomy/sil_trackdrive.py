@@ -41,7 +41,7 @@ Run against the driver (two terminals, isolated domain, no sim required):
 
     export ROS_DOMAIN_ID=42
     ros2 run fs_autonomy trackdrive_driver --ros-args -p laps:=3
-    ros2 run fs_autonomy fake_trackdrive
+    ros2 run fs_autonomy sil_trackdrive
 
 Batch sweeps: scripts/run_sweeps.py drives both processes and collects CSV.
 """
@@ -134,9 +134,9 @@ def load_profile(path):
     }
 
 
-class FakeTrackdrive(Node):
+class SilTrackdrive(Node):
     def __init__(self):
-        super().__init__("fake_trackdrive")
+        super().__init__("sil_trackdrive")
         self.center, self.blue, self.yellow = build_track()
 
         self.declare_parameter("seed", 0)
@@ -360,7 +360,7 @@ class FakeTrackdrive(Node):
 
 def main():
     rclpy.init()
-    node = FakeTrackdrive()
+    node = SilTrackdrive()
     try:
         rclpy.spin(node)
     except (KeyboardInterrupt, rclpy.executors.ExternalShutdownException):
