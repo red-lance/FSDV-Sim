@@ -76,6 +76,7 @@ class TrackdriveDriver(Node):
         self.declare_parameter("steer_limit", 0.35)
         self.declare_parameter("stop_speed", 0.1)
         self.declare_parameter("brake_hold", 1.0)
+        self.declare_parameter("tick_rate", 50.0)  # Hz; scale with harness realtime_factor
 
         p = self.get_parameter
         self.mission = p("mission").value
@@ -107,6 +108,7 @@ class TrackdriveDriver(Node):
         self.stopped = False
         self.cones_msg = None
         self.cones_rx_time = None
+        self.last_target_time = None
         self.last_steer = 0.0
         self._wrong_mission_logged = False
 
@@ -116,7 +118,7 @@ class TrackdriveDriver(Node):
         self.create_subscription(
             ConeWithColorProbabilityArray, p("cones_topic").value, self.on_cones, 10
         )
-        self.create_timer(0.02, self.tick)
+        self.create_timer(1.0 / self.get_parameter("tick_rate").value, self.tick)
 
         self.get_logger().info(
             "Waiting for %s + DRIVING. %d lap(s), target_speed=%.1f m/s"
@@ -239,6 +241,7 @@ class TrackdriveDriver(Node):
             steer = math.atan2(2.0 * self.wheelbase * math.sin(alpha), ld)
             steer = max(-self.steer_limit, min(self.steer_limit, steer))
             self.last_steer = steer
+            self.last_target_time = self.get_clock().now()
             blind = False
         else:
             steer = self.last_steer  # hold the line, slow down
@@ -249,7 +252,12 @@ class TrackdriveDriver(Node):
         v_target = self.target_speed - (self.target_speed - self.min_speed) * slow
         if blind:
             v_target = self.min_speed
-        if self.finished or (blind and age > self.blind_stop_time):
+        # blindness is measured from the last USABLE TARGET, not the last
+        # message -- a live perception stack seeing nothing still publishes
+        # empty arrays at frame rate, which must not defer the blind stop
+        t_age = (float("inf") if self.last_target_time is None else
+                 (self.get_clock().now() - self.last_target_time).nanoseconds * 1e-9)
+        if self.finished or (blind and t_age > self.blind_stop_time):
             v_target = 0.0
 
         accel = self.kp * (v_target - self.speed)

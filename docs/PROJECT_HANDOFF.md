@@ -74,6 +74,20 @@ Run inside the existing Docker image → works on any CI runner
 already runs, not new construction.
 
 ### 4.2 Monte-Carlo robustness sweeps (the report's results chapter)
+**STATUS 2026-08-11: machinery BUILT and verified.** fake_trackdrive now has a
+parameterized error model (per-range P(detect), bearing/range noise, color
+flips, false positives, latency frames, seeded RNG, realtime_factor) that can
+load `error_profile.json` from scripts/extract_error_profile.py directly.
+`scripts/run_sweeps.py` batch-runs seeded episodes to CSV;
+`scripts/plot_sweeps.py` renders success-rate curves. First sweep immediately
+found + fixed a REAL controller bug: blind-stop was clocked from the last cone
+*message*, but a live detector seeing nothing still publishes empty arrays at
+frame rate, so a never-seeing car crept at min_speed indefinitely (335 m off
+track). Now clocked from the last usable *target*; a blind car refuses to
+move. Early finding: uniform dropout is nearly harmless (passes at 5%
+detection!) because detections integrate across frames — the binding
+constraints will be range-concentrated misses, color flips, FPs, latency.
+Remaining: run the real YOLO profile + big sweeps, make the graphs.
 Sweep dimensions (all knobs already exist): cone dropout / shift / recolour
 (`track_changer` plugin params or own harness), sensor FoV / range / rate,
 position noise, sensor dropout intervals. Metrics per run: mission success,
