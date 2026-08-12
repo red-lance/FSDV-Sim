@@ -55,6 +55,7 @@ class SkidpadDriver(Node):
     def __init__(self):
         super().__init__("skidpad_driver")
 
+        self.declare_parameter("odom_topic", "/odom")  # e.g. /odometry/filtered for EKF
         self.declare_parameter("mission", "SKIDPAD")     # AMIState this node responds to
         self.declare_parameter("entry_distance", 9.8)    # m, start pose -> crossing point
         self.declare_parameter("circle_radius", 9.25)    # m, driving line radius
@@ -98,7 +99,8 @@ class SkidpadDriver(Node):
 
         self.pub = self.create_publisher(AckermannDriveStamped, "/cmd", 10)
         self.create_subscription(String, "/sim/ros_can/state_str", self.on_state, 10)
-        self.create_subscription(Odometry, "/odom", self.on_odom, 10)
+        self.create_subscription(
+            Odometry, self.get_parameter("odom_topic").value, self.on_odom, 10)
         self.create_timer(0.02, self.tick)
 
         self.get_logger().info(

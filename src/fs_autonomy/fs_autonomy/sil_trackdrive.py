@@ -150,10 +150,30 @@ class SilTrackdrive(Node):
         self.declare_parameter("sensor_fov_deg", 110.0)
         self.declare_parameter("latency_frames", 0)
         self.declare_parameter("realtime_factor", 1.0)
+        # odometry corruption: the harness SCORES against ground truth but
+        # PUBLISHES estimated state; these emulate a real state estimator.
+        # Drift is a seeded random walk: expected std after t minutes is
+        # rate * sqrt(t_minutes).
+        self.declare_parameter("odom_pos_noise", 0.0)             # m, white
+        self.declare_parameter("odom_yaw_noise_deg", 0.0)         # deg, white
+        self.declare_parameter("odom_vel_noise", 0.0)             # m/s, white
+        self.declare_parameter("odom_drift_m_per_sqrt_min", 0.0)  # random walk
+        self.declare_parameter("odom_yaw_drift_deg_per_sqrt_min", 0.0)
 
         gp = lambda k: self.get_parameter(k).value
         self.seed = gp("seed")
         self.rng = random.Random(self.seed)
+        # separate stream so odom sweeps don't resample the cone-error draws
+        self.odom_rng = random.Random(self.seed + 1)
+        self.odom_pos_noise = gp("odom_pos_noise")
+        self.odom_yaw_noise = math.radians(gp("odom_yaw_noise_deg"))
+        self.odom_vel_noise = gp("odom_vel_noise")
+        self.odom_drift_q = gp("odom_drift_m_per_sqrt_min") * math.sqrt(DT / 60.0)
+        self.odom_yaw_drift_q = math.radians(
+            gp("odom_yaw_drift_deg_per_sqrt_min")) * math.sqrt(DT / 60.0)
+        self.drift_x = 0.0
+        self.drift_y = 0.0
+        self.drift_yaw = 0.0
         self.profile = load_profile(gp("profile_json")) if gp("profile_json") else None
         self.p_detect_scale = gp("p_detect_scale")
         self.bearing_noise_deg = gp("bearing_noise_deg")
@@ -321,15 +341,25 @@ class SilTrackdrive(Node):
             self.lap_armed = False
             self.laps += 1
 
+        # metrics above use the TRUE state; the published odom is corrupted
+        # like a real state estimator's output
+        self.drift_x += self.odom_rng.gauss(0.0, self.odom_drift_q)
+        self.drift_y += self.odom_rng.gauss(0.0, self.odom_drift_q)
+        self.drift_yaw += self.odom_rng.gauss(0.0, self.odom_yaw_drift_q)
+        est_x = self.x + self.drift_x + self.odom_rng.gauss(0.0, self.odom_pos_noise)
+        est_y = self.y + self.drift_y + self.odom_rng.gauss(0.0, self.odom_pos_noise)
+        est_yaw = self.yaw + self.drift_yaw + self.odom_rng.gauss(0.0, self.odom_yaw_noise)
+        est_v = self.v + self.odom_rng.gauss(0.0, self.odom_vel_noise)
+
         odom = Odometry()
         odom.header.stamp = self.get_clock().now().to_msg()
         odom.header.frame_id = "map"
         odom.child_frame_id = "base_footprint"
-        odom.pose.pose.position.x = self.x
-        odom.pose.pose.position.y = self.y
-        odom.pose.pose.orientation.z = math.sin(self.yaw / 2.0)
-        odom.pose.pose.orientation.w = math.cos(self.yaw / 2.0)
-        odom.twist.twist.linear.x = self.v
+        odom.pose.pose.position.x = est_x
+        odom.pose.pose.position.y = est_y
+        odom.pose.pose.orientation.z = math.sin(est_yaw / 2.0)
+        odom.pose.pose.orientation.w = math.cos(est_yaw / 2.0)
+        odom.twist.twist.linear.x = est_v
         self.odom_pub.publish(odom)
 
         s = String()

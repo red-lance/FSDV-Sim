@@ -1,0 +1,2 @@
+seed,laps,dev_mean,dev_max,cones_hit,max_v,time,final_v,success
+1000,3,0.048,0.100,0,3.80,90.9,0.000,1

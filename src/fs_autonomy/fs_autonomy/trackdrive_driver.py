@@ -54,6 +54,7 @@ class TrackdriveDriver(Node):
     def __init__(self):
         super().__init__("trackdrive_driver")
 
+        self.declare_parameter("odom_topic", "/odom")  # e.g. /odometry/filtered for EKF
         self.declare_parameter("mission", "TRACK_DRIVE")  # AMIState this node responds to
         # eufs_sim2's fused /cones publisher exists but is never published
         # (upstream bug: perception_cones_pub_ is created and never used).
@@ -114,7 +115,8 @@ class TrackdriveDriver(Node):
 
         self.pub = self.create_publisher(AckermannDriveStamped, "/cmd", 10)
         self.create_subscription(String, "/sim/ros_can/state_str", self.on_state, 10)
-        self.create_subscription(Odometry, "/odom", self.on_odom, 10)
+        self.create_subscription(
+            Odometry, self.get_parameter("odom_topic").value, self.on_odom, 10)
         self.create_subscription(
             ConeWithColorProbabilityArray, p("cones_topic").value, self.on_cones, 10
         )

@@ -1,0 +1,42 @@
+# robot_localization EKF -- dead-reckoning state estimation (FS-realistic:
+# no GNSS, no absolute heading; position/heading WILL drift, that's the point).
+#
+# Fuses:
+#   /imu/data              yaw rate + forward acceleration (sim IMU)
+#   /wheel_odometry/twist  vx (+ vy ~ 0, nonholonomic) from wheel speeds
+#
+# Output: /odometry/filtered
+# publish_tf false: the sim's gt_transform owns the TF tree; we only need
+# the topic, and a second odom->base_footprint publisher would fight it.
+ekf_filter_node:
+  ros__parameters:
+    use_sim_time: true
+    frequency: 50.0
+    sensor_timeout: 0.5
+    two_d_mode: true
+    publish_tf: false
+    reset_on_time_jump: true
+
+    map_frame: map
+    odom_frame: odom
+    base_link_frame: base_footprint
+    world_frame: odom
+
+    # field order: x y z, roll pitch yaw, vx vy vz, vroll vpitch vyaw, ax ay az
+    imu0: /imu/data_cov
+    imu0_config: [false, false, false,
+                  false, false, false,
+                  false, false, false,
+                  false, false, true,
+                  true,  false, false]
+    imu0_differential: false
+    imu0_remove_gravitational_acceleration: true
+    imu0_queue_size: 20
+
+    twist0: /wheel_odometry/twist
+    twist0_config: [false, false, false,
+                    false, false, false,
+                    true,  true,  false,
+                    false, false, false,
+                    false, false, false]
+    twist0_queue_size: 20

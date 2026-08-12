@@ -28,6 +28,8 @@ setup(
             "skidpad_driver = fs_autonomy.skidpad_driver:main",
             "trackdrive_driver = fs_autonomy.trackdrive_driver:main",
             "cone_viz = fs_autonomy.cone_viz:main",
+            "wheel_odometry = fs_autonomy.wheel_odometry:main",
+            "imu_frontend = fs_autonomy.imu_frontend:main",
             "sil_accel = fs_autonomy.sil_accel:main",
             "sil_skidpad = fs_autonomy.sil_skidpad:main",
             "sil_trackdrive = fs_autonomy.sil_trackdrive:main",

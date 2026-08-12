@@ -38,6 +38,7 @@ class AccelDriver(Node):
     def __init__(self):
         super().__init__("accel_driver")
 
+        self.declare_parameter("odom_topic", "/odom")  # e.g. /odometry/filtered for EKF
         self.declare_parameter("mission", "ACCELERATION")  # AMIState this node responds to
         self.declare_parameter("target_speed", 8.0)      # m/s to hold on the run
         self.declare_parameter("finish_distance", 75.0)  # m before braking (FS accel = 75 m)
@@ -69,7 +70,8 @@ class AccelDriver(Node):
 
         self.pub = self.create_publisher(AckermannDriveStamped, "/cmd", 10)
         self.create_subscription(String, "/sim/ros_can/state_str", self.on_state, 10)
-        self.create_subscription(Odometry, "/odom", self.on_odom, 10)
+        self.create_subscription(
+            Odometry, self.get_parameter("odom_topic").value, self.on_odom, 10)
         self.create_timer(1.0 / rate, self.tick)
 
         self.get_logger().info(
