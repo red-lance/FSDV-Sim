@@ -1,0 +1,19 @@
+{
+  "meta": {
+    "samples": 2046,
+    "seconds": 41.0,
+    "meters_traveled": 82.9
+  },
+  "pos_err_final_m": 2.005,
+  "pos_err_max_m": 2.006,
+  "yaw_err_final_deg": 2.547,
+  "yaw_err_max_deg": 2.585,
+  "vel_err_sigma_ms": 0.0174,
+  "drift_per_meter": 0.0242,
+  "knobs": {
+    "odom_drift_m_per_sqrt_min": 2.427,
+    "odom_yaw_drift_deg_per_sqrt_min": 3.082,
+    "odom_pos_noise": 0.0195,
+    "odom_vel_noise": 0.0174
+  }
+}

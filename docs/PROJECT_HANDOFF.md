@@ -118,9 +118,18 @@ except phantom extra laps. Headline: perception-anchored steering robust to
 odom error, geometry-anchored fragile ⇒ the engineering case for cone-based
 localization, from our own data. UPSTREAM BUG #3 found during recon:
 /ros_can/twist has scrambled angular axes (x=pitch,y=yaw,z=roll) + zero
-covariance — never fuse it; MR candidate. PENDING: apt install
-ros-humble-robot-localization (needs sudo), then EKF smoke test → measure
-profile → calibrate knobs → controllers on /odometry/filtered in full sim.
+covariance — never fuse it; MR candidate. DONE 2026-08-12 — MEASURED (accel mission, 83 m, docs/odom_profile_ekf_*.json):
+pos drift 2.0 m final = 2.4%/m traveled; yaw err 2.5°; vel σ 0.017 m/s.
+Calibrated knobs: odom_drift 2.43 m/√min, yaw_drift 3.08 deg/√min, pos_noise
+0.02, vel_noise 0.017. Cross-ref the skidpad sweep: 3.1 deg/√min ⇒ predicted
+~0.3 m circle error — degraded but PASSING on this EKF (untested prediction,
+good report material). IN-THE-LOOP DEMO DONE: accel mission closed-loop on
+/odometry/filtered — driver belief "82.9 m" vs true stop 82.88 m (2 cm!),
+while EKF ABSOLUTE pose was >80 m off (never saw /reset teleport, heading
+drift across runs). Lesson for report: absolute pose drifts unboundedly;
+relative quantities stay usable; controllers built on relative distance
+survive dead-reckoning. Headless mission control (no Foxglove): services
+/set_mission (int16, ACCELERATION=1..TRACK_DRIVE=4), /go, /reset, /ebs.
 When real IMU arrives: Allan variance (desk, hours, allan_variance_ros) →
 values into imu_frontend + sim imu_plugin covariance → re-measure. EKF is
 tuned (Q/R), not trained; sim ground truth enables scripted Q grid-search.
