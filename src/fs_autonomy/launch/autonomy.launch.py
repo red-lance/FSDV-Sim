@@ -9,6 +9,11 @@ Foxglove.
 Every mission controller runs all the time; each one gates on its own
 AMIState in /sim/ros_can/state_str, so whichever mission is selected in
 Foxglove is the one that engages once the state machine reaches DRIVING.
+
+The EKF estimation stack (estimation.launch.py) is included when
+robot_localization is installed -- it publishes /odometry/filtered but the
+controllers keep driving on ground truth /odom unless their config sets
+odom_topic. Disable it with estimation:=false.
 """
 
 import os
@@ -16,13 +21,22 @@ import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import (
+    DeclareLaunchArgument,
     ExecuteProcess,
     IncludeLaunchDescription,
     RegisterEventHandler,
 )
+from launch.conditions import IfCondition
 from launch.event_handlers import OnProcessExit
 from launch.launch_description_sources import AnyLaunchDescriptionSource
+from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
+
+try:
+    get_package_share_directory("robot_localization")
+    HAVE_EKF = True
+except Exception:
+    HAVE_EKF = False
 
 
 def generate_launch_description():
@@ -51,11 +65,22 @@ def generate_launch_description():
             )
         )
     )
-    return LaunchDescription([
+    actions = [
+        DeclareLaunchArgument(
+            "estimation", default_value="true",
+            description="run the EKF estimation stack (needs robot_localization)"),
         wait_for_sim,
         RegisterEventHandler(
             OnProcessExit(target_action=wait_for_sim, on_exit=[bridge])
         ),
+    ]
+    if HAVE_EKF:
+        actions.append(IncludeLaunchDescription(
+            AnyLaunchDescriptionSource(
+                os.path.join(share, "launch", "estimation.launch.py")),
+            condition=IfCondition(LaunchConfiguration("estimation")),
+        ))
+    actions += [
         Node(
             package="fs_autonomy",
             executable="cone_viz",
@@ -91,4 +116,5 @@ def generate_launch_description():
             parameters=[autocross_params],
             output="screen",
         ),
-    ])
+    ]
+    return LaunchDescription(actions)
