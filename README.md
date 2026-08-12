@@ -189,11 +189,41 @@ python3 scripts/run_sweeps.py --episodes 20 --speed 3 \
 python3 scripts/plot_sweeps.py dropout.csv --x p_detect_scale
 ```
 
-Sweepable error-model knobs (harness params): `p_detect_scale`,
-`bearing_noise_deg`, `range_noise_frac`, `color_flip_prob`,
-`false_positives_per_frame`, `latency_frames`, `sensor_range`,
-`sensor_fov_deg`. Driver params (e.g. `target_speed`, `laps`) can be swept
-the same way. Repeat `--sweep` for a grid; `--fixed k=v` pins a value.
+All three missions sweep via `--mission accel|skidpad|trackdrive` (each pairs
+its driver with its SIL harness and applies its own pass criteria):
+
+```bash
+# the state-estimation experiment: skidpad is odom-geometry, watch it degrade
+python3 scripts/run_sweeps.py --mission skidpad --episodes 20 --speed 3 \
+    --sweep odom_yaw_drift_deg_per_sqrt_min=0,1,2,4,8 --out skid_drift.csv
+```
+
+Sweepable error-model knobs (harness params). Perception (sil_trackdrive
+only): `p_detect_scale`, `bearing_noise_deg`, `range_noise_frac`,
+`color_flip_prob`, `false_positives_per_frame`, `latency_frames`,
+`sensor_range`, `sensor_fov_deg`. Odometry (all harnesses — the harness
+scores against truth but publishes a corrupted estimate): `odom_pos_noise`,
+`odom_yaw_noise_deg`, `odom_vel_noise`, `odom_drift_m_per_sqrt_min`,
+`odom_yaw_drift_deg_per_sqrt_min`. Driver params (e.g. `target_speed`,
+`laps`) can be swept the same way. Repeat `--sweep` for a grid; `--fixed
+k=v` pins a value.
+
+## State estimation (EKF)
+
+`estimation.launch.py` runs a dead-reckoning robot_localization EKF against
+the sim's raw sensors (needs `apt install ros-humble-robot-localization`):
+`wheel_odometry` converts `/ros_can/wheel_speeds` (rev/s in the sim despite
+the RPM comment -- upstream quirk) into a covariance-stamped twist,
+`imu_frontend` fills the covariance fields the sim leaves zeroed, and the
+EKF fuses them into `/odometry/filtered`. Point any controller at it with
+`-p odom_topic:=/odometry/filtered` to drive on estimated state instead of
+ground truth. Measure the estimator against truth while a mission runs with
+`scripts/extract_odom_profile.py` -- its `knobs` output block calibrates the
+harness odometry knobs above from the real filter's behaviour.
+
+Do NOT fuse `/ros_can/twist`: its angular axes are scrambled upstream
+(x=pitch, y=yaw, z=roll -- see twist_publisher.cpp) and its covariance is
+hard-zeroed. MR candidate.
 
 With a measured detector profile (from `scripts/extract_error_profile.py`,
 run wherever the model + dataset live):

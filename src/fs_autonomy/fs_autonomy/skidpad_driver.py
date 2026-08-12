@@ -70,6 +70,7 @@ class SkidpadDriver(Node):
         self.declare_parameter("steer_limit", 0.35)      # rad (model clamps at 0.37)
         self.declare_parameter("stop_speed", 0.1)        # m/s under which we count as stopped
         self.declare_parameter("brake_hold", 1.0)        # m/s^2 held once stopped
+        self.declare_parameter("tick_rate", 50.0)        # Hz; scale with harness realtime_factor
 
         p = self.get_parameter
         self.mission = p("mission").value
@@ -101,7 +102,7 @@ class SkidpadDriver(Node):
         self.create_subscription(String, "/sim/ros_can/state_str", self.on_state, 10)
         self.create_subscription(
             Odometry, self.get_parameter("odom_topic").value, self.on_odom, 10)
-        self.create_timer(0.02, self.tick)
+        self.create_timer(1.0 / self.get_parameter("tick_rate").value, self.tick)
 
         self.get_logger().info(
             "Waiting for %s + DRIVING. entry=%.1f m, R=%.2f m, %dx2 laps, exit=%.1f m"

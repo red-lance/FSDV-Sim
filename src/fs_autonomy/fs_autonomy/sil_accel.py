@@ -17,6 +17,7 @@ Jetson too):
     ros2 run fs_autonomy sil_accel
 """
 import math
+import random
 import sys
 
 import rclpy
@@ -25,6 +26,8 @@ from std_msgs.msg import String
 from nav_msgs.msg import Odometry
 from ackermann_msgs.msg import AckermannDriveStamped
 
+from fs_autonomy.odom_corruptor import OdomCorruptor
+
 DT = 0.02
 DURATION = 40.0
 
@@ -32,6 +35,13 @@ DURATION = 40.0
 class SilAccel(Node):
     def __init__(self):
         super().__init__("sil_accel")
+        self.declare_parameter("seed", 0)
+        self.declare_parameter("realtime_factor", 1.0)
+        OdomCorruptor.declare(self)
+        self.seed = self.get_parameter("seed").value
+        self.odom = OdomCorruptor(self, random.Random(self.seed + 1), DT)
+        rt = self.get_parameter("realtime_factor").value
+
         self.x = 0.0
         self.v = 0.0
         self.a = 0.0
@@ -43,7 +53,7 @@ class SilAccel(Node):
         self.odom_pub = self.create_publisher(Odometry, "/odom", 10)
         self.state_pub = self.create_publisher(String, "/sim/ros_can/state_str", 10)
         self.create_subscription(AckermannDriveStamped, "/cmd", self.on_cmd, 10)
-        self.create_timer(DT, self.step)
+        self.create_timer(DT / rt, self.step)
 
     def on_cmd(self, msg):
         self.a = msg.drive.acceleration
@@ -62,13 +72,16 @@ class SilAccel(Node):
         if self.brake_x is not None and self.stop_x is None and self.v < 0.05:
             self.stop_x = self.x
 
+        # metrics above use the TRUE state; publish the corrupted estimate
+        est_x, _, _, est_v = self.odom.corrupt(self.x, 0.0, 0.0, self.v)
+
         odom = Odometry()
         odom.header.stamp = self.get_clock().now().to_msg()
         odom.header.frame_id = "map"
         odom.child_frame_id = "base_footprint"
-        odom.pose.pose.position.x = self.x
+        odom.pose.pose.position.x = est_x
         odom.pose.pose.orientation.w = 1.0
-        odom.twist.twist.linear.x = self.v
+        odom.twist.twist.linear.x = est_v
         self.odom_pub.publish(odom)
 
         s = String()
@@ -77,7 +90,8 @@ class SilAccel(Node):
 
         if self.t >= DURATION:
             print(
-                "RESULT max_v=%.2f min_a=%.2f brake_x=%s stop_x=%s final_x=%.1f final_v=%.3f"
+                "RESULT max_v=%.2f min_a=%.2f brake_x=%s stop_x=%s "
+                "final_x=%.1f final_v=%.3f seed=%d"
                 % (
                     self.max_v,
                     self.min_a,
@@ -85,6 +99,7 @@ class SilAccel(Node):
                     "%.1f" % self.stop_x if self.stop_x is not None else "never",
                     self.x,
                     self.v,
+                    self.seed,
                 ),
                 flush=True,
             )

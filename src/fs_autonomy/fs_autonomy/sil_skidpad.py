@@ -20,6 +20,7 @@ Run against the driver (two terminals, no sim required):
 """
 
 import math
+import random
 import sys
 
 import rclpy
@@ -27,6 +28,8 @@ from rclpy.node import Node
 from std_msgs.msg import String
 from nav_msgs.msg import Odometry
 from ackermann_msgs.msg import AckermannDriveStamped
+
+from fs_autonomy.odom_corruptor import OdomCorruptor
 
 DT = 0.02
 DURATION = 100.0
@@ -42,6 +45,13 @@ RADIUS = 9.25
 class SilSkidpad(Node):
     def __init__(self):
         super().__init__("sil_skidpad")
+        self.declare_parameter("seed", 0)
+        self.declare_parameter("realtime_factor", 1.0)
+        OdomCorruptor.declare(self)
+        self.seed = self.get_parameter("seed").value
+        self.odom = OdomCorruptor(self, random.Random(self.seed + 1), DT)
+        rt = self.get_parameter("realtime_factor").value
+
         self.x = 0.0
         self.y = 0.0
         self.yaw = 0.0
@@ -60,7 +70,7 @@ class SilSkidpad(Node):
         self.odom_pub = self.create_publisher(Odometry, "/odom", 10)
         self.state_pub = self.create_publisher(String, "/sim/ros_can/state_str", 10)
         self.create_subscription(AckermannDriveStamped, "/cmd", self.on_cmd, 10)
-        self.create_timer(DT, self.step)
+        self.create_timer(DT / rt, self.step)
 
     def on_cmd(self, msg):
         self.a_cmd = msg.drive.acceleration
@@ -91,15 +101,19 @@ class SilSkidpad(Node):
             self.circ_err_max = max(self.circ_err_max, err)
             self.circ_samples += 1
 
+        # metrics above use the TRUE state; publish the corrupted estimate
+        est_x, est_y, est_yaw, est_v = self.odom.corrupt(
+            self.x, self.y, self.yaw, self.v)
+
         odom = Odometry()
         odom.header.stamp = self.get_clock().now().to_msg()
         odom.header.frame_id = "map"
         odom.child_frame_id = "base_footprint"
-        odom.pose.pose.position.x = self.x
-        odom.pose.pose.position.y = self.y
-        odom.pose.pose.orientation.z = math.sin(self.yaw / 2.0)
-        odom.pose.pose.orientation.w = math.cos(self.yaw / 2.0)
-        odom.twist.twist.linear.x = self.v
+        odom.pose.pose.position.x = est_x
+        odom.pose.pose.position.y = est_y
+        odom.pose.pose.orientation.z = math.sin(est_yaw / 2.0)
+        odom.pose.pose.orientation.w = math.cos(est_yaw / 2.0)
+        odom.twist.twist.linear.x = est_v
         self.odom_pub.publish(odom)
 
         s = String()
@@ -110,9 +124,10 @@ class SilSkidpad(Node):
             mean = self.circ_err_sum / self.circ_samples if self.circ_samples else -1.0
             print(
                 "RESULT max_v=%.2f circ_err_mean=%.3f circ_err_max=%.3f "
-                "turn_total=%.1f net_yaw=%.2f final_x=%.1f final_y=%.2f final_v=%.3f"
+                "turn_total=%.1f net_yaw=%.2f final_x=%.1f final_y=%.2f "
+                "final_v=%.3f seed=%d"
                 % (self.max_v, mean, self.circ_err_max, self.turn_total,
-                   wrapped_net(self.yaw), self.x, self.y, self.v),
+                   wrapped_net(self.yaw), self.x, self.y, self.v, self.seed),
                 flush=True,
             )
             raise SystemExit(0)

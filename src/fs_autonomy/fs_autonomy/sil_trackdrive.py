@@ -59,6 +59,8 @@ from nav_msgs.msg import Odometry
 from ackermann_msgs.msg import AckermannDriveStamped
 from eufs_msgs.msg import ConeWithColorProbability, ConeWithColorProbabilityArray
 
+from fs_autonomy.odom_corruptor import OdomCorruptor
+
 DT = 0.02
 TIME_CAP = 240.0
 WHEELBASE = 1.53
@@ -150,30 +152,13 @@ class SilTrackdrive(Node):
         self.declare_parameter("sensor_fov_deg", 110.0)
         self.declare_parameter("latency_frames", 0)
         self.declare_parameter("realtime_factor", 1.0)
-        # odometry corruption: the harness SCORES against ground truth but
-        # PUBLISHES estimated state; these emulate a real state estimator.
-        # Drift is a seeded random walk: expected std after t minutes is
-        # rate * sqrt(t_minutes).
-        self.declare_parameter("odom_pos_noise", 0.0)             # m, white
-        self.declare_parameter("odom_yaw_noise_deg", 0.0)         # deg, white
-        self.declare_parameter("odom_vel_noise", 0.0)             # m/s, white
-        self.declare_parameter("odom_drift_m_per_sqrt_min", 0.0)  # random walk
-        self.declare_parameter("odom_yaw_drift_deg_per_sqrt_min", 0.0)
+        OdomCorruptor.declare(self)
 
         gp = lambda k: self.get_parameter(k).value
         self.seed = gp("seed")
         self.rng = random.Random(self.seed)
         # separate stream so odom sweeps don't resample the cone-error draws
-        self.odom_rng = random.Random(self.seed + 1)
-        self.odom_pos_noise = gp("odom_pos_noise")
-        self.odom_yaw_noise = math.radians(gp("odom_yaw_noise_deg"))
-        self.odom_vel_noise = gp("odom_vel_noise")
-        self.odom_drift_q = gp("odom_drift_m_per_sqrt_min") * math.sqrt(DT / 60.0)
-        self.odom_yaw_drift_q = math.radians(
-            gp("odom_yaw_drift_deg_per_sqrt_min")) * math.sqrt(DT / 60.0)
-        self.drift_x = 0.0
-        self.drift_y = 0.0
-        self.drift_yaw = 0.0
+        self.odom = OdomCorruptor(self, random.Random(self.seed + 1), DT)
         self.profile = load_profile(gp("profile_json")) if gp("profile_json") else None
         self.p_detect_scale = gp("p_detect_scale")
         self.bearing_noise_deg = gp("bearing_noise_deg")
@@ -343,13 +328,8 @@ class SilTrackdrive(Node):
 
         # metrics above use the TRUE state; the published odom is corrupted
         # like a real state estimator's output
-        self.drift_x += self.odom_rng.gauss(0.0, self.odom_drift_q)
-        self.drift_y += self.odom_rng.gauss(0.0, self.odom_drift_q)
-        self.drift_yaw += self.odom_rng.gauss(0.0, self.odom_yaw_drift_q)
-        est_x = self.x + self.drift_x + self.odom_rng.gauss(0.0, self.odom_pos_noise)
-        est_y = self.y + self.drift_y + self.odom_rng.gauss(0.0, self.odom_pos_noise)
-        est_yaw = self.yaw + self.drift_yaw + self.odom_rng.gauss(0.0, self.odom_yaw_noise)
-        est_v = self.v + self.odom_rng.gauss(0.0, self.odom_vel_noise)
+        est_x, est_y, est_yaw, est_v = self.odom.corrupt(
+            self.x, self.y, self.yaw, self.v)
 
         odom = Odometry()
         odom.header.stamp = self.get_clock().now().to_msg()
