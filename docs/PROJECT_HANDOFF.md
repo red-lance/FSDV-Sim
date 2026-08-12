@@ -100,6 +100,31 @@ X% detection rate inside 15 m / above Y m position noise" ⇒ that's the spec
 the future perception team must meet. This turns robustness graphs from
 pretty pictures into an engineering deliverable nobody online provides.
 
+### 4.2b State estimation (added 2026-08-12) — the EKF thread
+The odometry twin of the perception story: measure a real estimator, inject
+its profile, swap it into the loop. BUILT: `wheel_odometry` (wheel speeds →
+covariance-stamped twist; sim emits rev/s despite the msg saying RPM),
+`imu_frontend` (fills covariances the sim zeroes), `config/ekf_params.yaml` +
+`estimation.launch.py` (robot_localization dead-reckoning: IMU yaw rate +
+accel, wheel vx; no GNSS/abs heading), `odom_topic` param on all controllers,
+`odom_corruptor.py` knobs in all three SIL harnesses (score truth, publish
+estimate), `extract_odom_profile.py` (EKF-vs-truth → calibrated knob values),
+run_sweeps `--mission accel|skidpad|trackdrive`. Sim IMU noise raised to
+BMI088-class realism (was identity) + yaw-drift ramp, in eufs plugin_params
+(local upstream edit — symlinked install, survives until eufs rebuild).
+FIRST DATA: skidpad circ_err_max 0.068/0.199/0.558 m at 0/2/6 deg/√min yaw
+drift (monotonic, fails ~10); trackdrive immune to 3 m/√min position drift
+except phantom extra laps. Headline: perception-anchored steering robust to
+odom error, geometry-anchored fragile ⇒ the engineering case for cone-based
+localization, from our own data. UPSTREAM BUG #3 found during recon:
+/ros_can/twist has scrambled angular axes (x=pitch,y=yaw,z=roll) + zero
+covariance — never fuse it; MR candidate. PENDING: apt install
+ros-humble-robot-localization (needs sudo), then EKF smoke test → measure
+profile → calibrate knobs → controllers on /odometry/filtered in full sim.
+When real IMU arrives: Allan variance (desk, hours, allan_variance_ros) →
+values into imu_frontend + sim imu_plugin covariance → re-measure. EKF is
+tuned (Q/R), not trained; sim ground truth enables scripted Q grid-search.
+
 ### 4.3 Jetson deployment + benchmarks
 JetPack 6 = Ubuntu 22.04 = Humble parity. Build the existing Dockerfile for
 arm64, run sim on laptop + stack on Jetson over LAN (same DDS domain).
