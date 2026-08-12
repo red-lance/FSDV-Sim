@@ -91,8 +91,9 @@ class SilSkidpad(Node):
         self.max_v = max(self.max_v, self.v)
         self.turn_total += abs(dyaw)
         # radial error to the nearest circle, sampled only when clearly off
-        # the centerline strip (entry/exit points would skew it otherwise)
-        if abs(self.y) > 1.0:
+        # the centerline strip AND within the circles' x-span (a drifted
+        # exit leg off-axis would otherwise be scored against the circles)
+        if abs(self.y) > 1.0 and (CROSS_X - RADIUS - 1.0) < self.x < (CROSS_X + RADIUS + 1.0):
             err = min(
                 abs(math.hypot(self.x - CROSS_X, self.y + RADIUS) - RADIUS),
                 abs(math.hypot(self.x - CROSS_X, self.y - RADIUS) - RADIUS),

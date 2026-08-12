@@ -134,6 +134,24 @@ When real IMU arrives: Allan variance (desk, hours, allan_variance_ros) →
 values into imu_frontend + sim imu_plugin covariance → re-measure. EKF is
 tuned (Q/R), not trained; sim ground truth enables scripted Q grid-search.
 
+PREDICTION TEST DONE (2026-08-12) — the model-fidelity result, all true-
+geometry circle error via scripts/measure_skidpad.py (docs/skidpad_fullsim_*):
+| run                              | mean   | max    |
+| SIL kinematic, no drift          | 0.015  | 0.054  |
+| full sim, ground-truth odom      | 0.204  | 0.207  |  <- 1st full-sim skidpad validation; gap vs SIL = vehicle-dynamics offset
+| SIL @ measured 3.1 deg/sqrt-min  | ~0.14  | ~0.30  |  <- the prediction
+| full sim ON THE EKF              | 0.33   | 0.69   |
+MEAN validated: additive model (dynamics 0.19 + SIL drift 0.13 = 0.32) vs
+measured 0.33 — within 0.01 m. MAX underpredicted ~2x: real EKF drift is a
+time-correlated bias RAMP (error concentrates late in run), SIL knob is a
+white random walk. Both are report gold: fidelity confirmed on the mean,
+discrepancy on the max explained mechanistically + improvement path (add a
+bias-ramp mode to odom_corruptor). Mission completed on EKF regardless:
+full entry/laps/exit, true final lateral offset 1.21 m, 0.69 m worst circle
+error still inside the 1.5 m half-lane. Metric caveat fixed on the way: the
+|y|>1 gate scored the drifted EXIT leg against the circles (16.9 m phantom
+max) — both sil_skidpad and measure_skidpad now gate on the circles' x-span.
+
 ### 4.3 Jetson deployment + benchmarks
 JetPack 6 = Ubuntu 22.04 = Humble parity. Build the existing Dockerfile for
 arm64, run sim on laptop + stack on Jetson over LAN (same DDS domain).

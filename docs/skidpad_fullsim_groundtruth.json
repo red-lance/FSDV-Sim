@@ -1,0 +1,11 @@
+{
+  "circ_err_mean_m": 0.204,
+  "circ_err_max_m": 0.207,
+  "max_v_ms": 4.35,
+  "meters_traveled": 262.2,
+  "final_local_xy": [
+    34.71,
+    -0.0
+  ],
+  "samples": 905
+}
