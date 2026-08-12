@@ -29,7 +29,7 @@ from launch.actions import (
 from launch.conditions import IfCondition
 from launch.event_handlers import OnProcessExit
 from launch.launch_description_sources import AnyLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch_ros.actions import Node
 
 try:
@@ -65,10 +65,23 @@ def generate_launch_description():
             )
         )
     )
+    # realistic:=true points every controller at the EKF output instead of
+    # ground truth -- the demo/validation mode. Requires the estimation stack.
+    if HAVE_EKF:
+        odom_topic = PythonExpression([
+            "'/odometry/filtered' if '", LaunchConfiguration("realistic"),
+            "' == 'true' else '/odom'"])
+    else:
+        odom_topic = "/odom"
+    odom_override = {"odom_topic": odom_topic}
+
     actions = [
         DeclareLaunchArgument(
             "estimation", default_value="true",
             description="run the EKF estimation stack (needs robot_localization)"),
+        DeclareLaunchArgument(
+            "realistic", default_value="false",
+            description="controllers drive on /odometry/filtered instead of ground truth"),
         wait_for_sim,
         RegisterEventHandler(
             OnProcessExit(target_action=wait_for_sim, on_exit=[bridge])
@@ -91,21 +104,21 @@ def generate_launch_description():
             package="fs_autonomy",
             executable="accel_driver",
             name="accel_driver",
-            parameters=[accel_params],
+            parameters=[accel_params, odom_override],
             output="screen",
         ),
         Node(
             package="fs_autonomy",
             executable="skidpad_driver",
             name="skidpad_driver",
-            parameters=[skidpad_params],
+            parameters=[skidpad_params, odom_override],
             output="screen",
         ),
         Node(
             package="fs_autonomy",
             executable="trackdrive_driver",
             name="trackdrive_driver",
-            parameters=[trackdrive_params],
+            parameters=[trackdrive_params, odom_override],
             output="screen",
         ),
         # autocross = trackdrive with laps: 1, gated on its own mission
@@ -113,7 +126,7 @@ def generate_launch_description():
             package="fs_autonomy",
             executable="trackdrive_driver",
             name="autocross_driver",
-            parameters=[autocross_params],
+            parameters=[autocross_params, odom_override],
             output="screen",
         ),
     ]

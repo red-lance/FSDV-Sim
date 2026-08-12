@@ -217,7 +217,8 @@ the RPM comment -- upstream quirk) into a covariance-stamped twist,
 `imu_frontend` fills the covariance fields the sim leaves zeroed, and the
 EKF fuses them into `/odometry/filtered`. Point any controller at it with
 `-p odom_topic:=/odometry/filtered` to drive on estimated state instead of
-ground truth. Measure the estimator against truth while a mission runs with
+ground truth, or flip the whole stack at once with the launch argument
+`realistic:=true` on the main launch. Measure the estimator against truth while a mission runs with
 `scripts/extract_odom_profile.py` -- its `knobs` output block calibrates the
 harness odometry knobs above from the real filter's behaviour.
 
