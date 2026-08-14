@@ -1,0 +1,868 @@
+<title>FSDV-Sim Field Guide</title>
+<style>
+  :root {
+    --paper: #FFFFFF; --ink: #1D2833; --ink2: #4A5A6A; --ink3: #7A8894;
+    --accent: #2F6DB5; --head: #2E5D8F; --rule: #D8E0E7;
+    --codebg: #F2F5F8; --codeink: #24303C;
+    --good: #2E7D4F; --warn: #A66A1A; --bad: #B03A3A;
+    --card: #F7F9FB; --quiz: #EFF4FA;
+    --k: #9C36B5; --s: #2E7D4F; --c: #8A97A3; --n: #B05A1F; --f: #2F6DB5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #131A22; --ink: #E8EDF3; --ink2: #AEBBC8; --ink3: #7E8B98;
+      --accent: #7FB0E0; --head: #7FB0E0; --rule: #2A3441;
+      --codebg: #1B2430; --codeink: #D5DEE8;
+      --good: #6CC393; --warn: #D9A05B; --bad: #E08A8A;
+      --card: #18212B; --quiz: #1A2532;
+      --k: #D186E0; --s: #6CC393; --c: #67747F; --n: #DFA06A; --f: #7FB0E0;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #131A22; --ink: #E8EDF3; --ink2: #AEBBC8; --ink3: #7E8B98;
+    --accent: #7FB0E0; --head: #7FB0E0; --rule: #2A3441;
+    --codebg: #1B2430; --codeink: #D5DEE8;
+    --good: #6CC393; --warn: #D9A05B; --bad: #E08A8A;
+    --card: #18212B; --quiz: #1A2532;
+    --k: #D186E0; --s: #6CC393; --c: #67747F; --n: #DFA06A; --f: #7FB0E0;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: "Seaford", "Segoe UI", "Avenir Next", "Helvetica Neue", system-ui, sans-serif;
+    font-size: 16px; line-height: 1.62;
+  }
+  .wrap { display: flex; max-width: 1240px; margin: 0 auto; }
+
+  nav {
+    position: sticky; top: 0; align-self: flex-start;
+    width: 250px; flex: none; height: 100vh; overflow-y: auto;
+    padding: 28px 18px 40px 24px; border-right: 1px solid var(--rule);
+    font-size: 13.5px;
+  }
+  nav .brand { font-family: Charter, Georgia, serif; font-size: 17px; font-weight: 700; margin-bottom: 2px; }
+  nav .sub { color: var(--ink3); font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 16px; }
+  nav a {
+    display: block; color: var(--ink2); text-decoration: none;
+    padding: 4px 8px; border-radius: 5px; border-left: 2px solid transparent;
+  }
+  nav a:hover { color: var(--accent); }
+  nav a.active { color: var(--accent); border-left-color: var(--accent); background: var(--card); }
+  nav a:focus-visible { outline: 2px solid var(--accent); }
+
+  main { flex: 1; min-width: 0; padding: 34px 40px 90px; }
+  .col { max-width: 74ch; }
+
+  h1 { font-family: Charter, Georgia, serif; font-size: 33px; margin: 0 0 4px; text-wrap: balance; }
+  .tagline { color: var(--ink2); font-size: 16.5px; font-style: italic; font-family: Charter, Georgia, serif; margin: 0 0 8px; }
+  .meta { color: var(--ink3); font-size: 13px; margin-bottom: 28px; }
+  h2 {
+    font-family: Charter, Georgia, serif; font-size: 24px; margin: 52px 0 10px;
+    padding-top: 18px; border-top: 1px solid var(--rule); text-wrap: balance;
+  }
+  h2 .no { color: var(--accent); font-variant-numeric: tabular-nums; margin-right: 8px; }
+  h3 { font-size: 17px; margin: 28px 0 6px; }
+  p { margin: 10px 0; }
+  li { margin: 4px 0; }
+  a { color: var(--accent); }
+  strong { font-weight: 650; }
+
+  pre {
+    background: var(--codebg); color: var(--codeink);
+    border: 1px solid var(--rule); border-radius: 8px;
+    padding: 13px 15px; overflow-x: auto; font-size: 13px; line-height: 1.55;
+    margin: 12px 0;
+  }
+  code, pre {
+    font-family: "Cascadia Code", "SF Mono", Consolas, "DejaVu Sans Mono", monospace;
+  }
+  p code, li code, td code {
+    background: var(--codebg); border: 1px solid var(--rule);
+    padding: 1px 5px; border-radius: 4px; font-size: 13px;
+  }
+  pre .k { color: var(--k); } pre .s { color: var(--s); }
+  pre .c { color: var(--c); font-style: italic; } pre .n { color: var(--n); }
+  pre .f { color: var(--f); }
+  .fname {
+    font-size: 11.5px; color: var(--ink3); letter-spacing: .05em;
+    margin: 14px 0 -8px; font-family: "Cascadia Code", Consolas, monospace;
+  }
+
+  .say {
+    border-left: 3px solid var(--accent); background: var(--card);
+    padding: 10px 16px; border-radius: 0 8px 8px 0; margin: 14px 0;
+    font-size: 15px;
+  }
+  .say b:first-child { color: var(--accent); font-size: 12px; letter-spacing: .09em; text-transform: uppercase; display: block; margin-bottom: 3px; }
+
+  details {
+    border: 1px solid var(--rule); border-radius: 8px;
+    padding: 0; margin: 12px 0; background: var(--card);
+  }
+  details summary {
+    cursor: pointer; padding: 10px 16px; font-weight: 600; font-size: 14.5px;
+    color: var(--ink2); user-select: none;
+  }
+  details summary:hover { color: var(--accent); }
+  details[open] summary { border-bottom: 1px solid var(--rule); color: var(--accent); }
+  details .body { padding: 4px 18px 12px; font-size: 15px; }
+  details.quiz { background: var(--quiz); }
+  details.quiz summary::before { content: "Quiz  ·  "; color: var(--accent); font-size: 12px; letter-spacing: .08em; }
+
+  table { border-collapse: collapse; width: 100%; font-size: 14px; margin: 14px 0; font-variant-numeric: tabular-nums; }
+  .tablewrap { overflow-x: auto; }
+  th { text-align: left; background: var(--codebg); }
+  th, td { border: 1px solid var(--rule); padding: 6px 10px; }
+  td.g { color: var(--good); font-weight: 600; }
+  td.w { color: var(--warn); font-weight: 600; }
+  td.b { color: var(--bad); font-weight: 600; }
+
+  .arch { display: flex; flex-direction: column; gap: 8px; margin: 18px 0; font-size: 13.5px; }
+  .archrow { display: flex; align-items: stretch; gap: 8px; flex-wrap: wrap; }
+  .box {
+    border: 1.5px solid var(--rule); border-radius: 8px; padding: 8px 12px;
+    background: var(--card); flex: 1; min-width: 130px;
+  }
+  .box b { display: block; font-size: 13.5px; }
+  .box span { color: var(--ink3); font-size: 12px; }
+  .box.hot { border-color: var(--accent); }
+  .flow { align-self: center; color: var(--accent); font-weight: 700; flex: none; }
+  .topic {
+    font-family: "Cascadia Code", Consolas, monospace; font-size: 11.5px;
+    color: var(--accent); background: var(--codebg); border: 1px solid var(--rule);
+    border-radius: 20px; padding: 1px 9px; white-space: nowrap;
+  }
+
+  figure { margin: 18px 0; }
+  figcaption { font-size: 12.5px; color: var(--ink3); margin-top: 6px; }
+  svg text { fill: var(--ink2); font-family: "Seaford", "Segoe UI", system-ui, sans-serif; }
+  svg .axis { stroke: var(--rule); }
+  svg .gridl { stroke: var(--rule); stroke-dasharray: 3 4; opacity: .6; }
+
+  .pill { display: inline-block; border-radius: 20px; padding: 0 9px; font-size: 12px; font-weight: 600; }
+  .pill.up { background: color-mix(in srgb, var(--warn) 14%, transparent); color: var(--warn); border: 1px solid var(--warn); }
+  .pill.own { background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); border: 1px solid var(--accent); }
+
+  @media (max-width: 1049px) {
+    nav { display: none; }
+    main { padding: 24px 20px 70px; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    html { scroll-behavior: smooth; }
+  }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="wrap">
+<nav id="toc" aria-label="Contents">
+  <div class="brand">FSDV-Sim Field Guide</div>
+  <div class="sub">learn it → present it</div>
+  <a href="#s1">1 · The big picture</a>
+  <a href="#s2">2 · ROS 2, the parts we used</a>
+  <a href="#s3">3 · Authority: state machine &amp; RES</a>
+  <a href="#s4">4 · Acceleration: P-control</a>
+  <a href="#s5">5 · Skidpad: pure pursuit</a>
+  <a href="#s6">6 · Trackdrive: perception steering</a>
+  <a href="#s7">7 · SIL harnesses &amp; bicycle model</a>
+  <a href="#s8">8 · Monte-Carlo &amp; error models</a>
+  <a href="#s9">9 · Perception: YOLO &amp; FSOCO</a>
+  <a href="#s10">10 · State estimation: the EKF</a>
+  <a href="#s11">11 · The prediction test</a>
+  <a href="#s12">12 · Six bugs (war stories)</a>
+  <a href="#s13">13 · Cheat sheet</a>
+</nav>
+
+<main><div class="col">
+
+<h1>FSDV-Sim Field Guide</h1>
+<p class="tagline">Everything the platform does, why it does it, and how to explain it out loud.</p>
+<p class="meta">Sim-first development platform for Formula Student Driverless · ROS 2 Humble · repo: red-lance/FSDV-Sim · August 2026</p>
+
+<p>This guide is ordered as a curriculum: each section builds on the one
+before. Every concept comes with the <em>actual code from the repo</em>, a
+plain-English explanation, and a <b>“say it like this”</b> box — a sentence
+you can use in a presentation verbatim. The quiz cards at the end of sections
+are the questions an examiner is most likely to ask; try answering before
+expanding.</p>
+
+<!-- ============================================================ -->
+<h2 id="s1"><span class="no">1</span>The big picture</h2>
+
+<p>The project is <strong>not</strong> "controllers that drive a simulated
+race car." It is a <strong>development platform</strong>: a way for a team to
+<em>develop</em> autonomy software against a simulator, <em>verify</em> it
+automatically and cheaply, and <em>deploy the identical software</em> to the
+real car's computer with zero changes.</p>
+
+<div class="say"><b>Say it like this</b>
+"Develop, verify, deploy. The controllers prove the platform is usable, the
+test harnesses prove the software is correct, and the containment rules prove
+it's portable. Everything we built is one leg of that tripod."</div>
+
+<div class="arch">
+  <div class="archrow">
+    <div class="box"><b>eufs_sim2</b><span>vehicle physics · cones · state machine · sensors (own workspace, never a build dep)</span></div>
+    <div class="flow">⇄</div>
+    <div class="box hot"><b>ROS 2 topics = the contract</b><span class="topic">/odom</span> <span class="topic">/cones/lenient</span> <span class="topic">/cmd</span> <span class="topic">/imu/data</span> <span class="topic">/ros_can/wheel_speeds</span></div>
+    <div class="flow">⇄</div>
+    <div class="box"><b>fs_autonomy (ours)</b><span>4 mission controllers · EKF stack · viz — deploys to Jetson unchanged</span></div>
+  </div>
+  <div class="archrow">
+    <div class="box"><b>SIL harnesses</b><span>replace the sim with tiny fake physics + error models → thousands of cheap closed-loop tests</span></div>
+    <div class="box"><b>Monte-Carlo runner</b><span>seeded sweeps → success-rate curves → requirements specs</span></div>
+    <div class="box"><b>Profile extractors</b><span>measure a real YOLO / real EKF → inject its measured errors into the loop</span></div>
+  </div>
+</div>
+
+<p>The load-bearing idea is the <strong>two-layer interface contract</strong>.
+Layer 1 is raw sensors (odometry, IMU, wheel speeds). Layer 2 is
+<em>objects</em> — car-relative cone positions with colors. Anything that
+<em>produces</em> a layer can be swapped without touching what
+<em>consumes</em> it: ground-truth cones ↔ a YOLO detector, ground-truth
+odometry ↔ a real EKF. We demonstrated both swaps.</p>
+
+<details class="quiz"><summary>Isn't this just gluing existing tools together?</summary>
+<div class="body">Yes — deliberately. Simulators, stacks, and datasets all
+exist online; what doesn't exist is a verified path between them: documented
+interfaces, repeatable closed-loop testing, and identical-code deployment to
+embedded hardware. In industry that layer is called <em>platform
+engineering</em>, and every new FS team currently rebuilds it from scratch
+each year. Integration <em>with evidence</em> is the contribution.</div></details>
+
+<!-- ============================================================ -->
+<h2 id="s2"><span class="no">2</span>ROS 2 — exactly the parts we used</h2>
+
+<p>ROS 2 is a <em>middleware</em>: it lets many small programs
+(<strong>nodes</strong>) talk to each other by publishing typed messages on
+named <strong>topics</strong>. Nobody calls anybody directly — a node
+publishes "here is the car's speed" and whoever cares subscribes. That
+decoupling is what makes components swappable.</p>
+
+<h3>A node, anatomically</h3>
+<p>Every node in the repo has the same skeleton. This is real code from
+<code>accel_driver.py</code>, trimmed:</p>
+
+<pre><code>import rclpy
+from rclpy.node import Node
+from nav_msgs.msg import Odometry
+from ackermann_msgs.msg import AckermannDriveStamped
+
+class AccelDriver(Node):
+    def __init__(self):
+        super().__init__("accel_driver")               # node name on the graph
+
+        self.declare_parameter("target_speed", 8.0)    # configurable at launch
+        self.target_speed = self.get_parameter("target_speed").value
+
+        self.pub = self.create_publisher(              # we SEND commands
+            AckermannDriveStamped, "/cmd", 10)
+        self.create_subscription(                      # we RECEIVE odometry
+            Odometry, "/odom", self.on_odom, 10)
+        self.create_timer(1.0 / 50.0, self.tick)       # control loop, 50 Hz
+
+    def on_odom(self, msg):                            # callback: runs per message
+        self.speed = msg.twist.twist.linear.x
+
+def main():
+    rclpy.init()
+    rclpy.spin(AccelDriver())                          # hand control to ROS
+</code></pre>
+
+<p>Four primitives carried the whole project:</p>
+<ul>
+<li><strong>Publisher / subscription</strong> — one-way typed streams. The message
+types are generated classes: <code>Odometry</code> has
+<code>.pose.pose.position.x</code>, <code>.twist.twist.linear.x</code>, etc.</li>
+<li><strong>Timer</strong> — "call this function at 50 Hz." All our control
+loops are timers; callbacks and timers run one-at-a-time per node, so no
+locking is needed.</li>
+<li><strong>Parameters</strong> — declared per node, settable at launch
+(<code>-p target_speed:=6.0</code>) or from YAML config files. This is how one
+<code>trackdrive_driver</code> executable also runs AUTOCROSS (<code>laps:=1</code>),
+and how controllers switch odometry source (<code>odom_topic:=/odometry/filtered</code>).</li>
+<li><strong>Services</strong> — request/response calls, used by the sim's
+state machine: <code>/set_mission</code>, <code>/go</code>, <code>/ebs</code>, <code>/reset</code>.
+This is what makes fully headless (scripted) mission runs possible.</li>
+</ul>
+
+<h3>Discovery and DDS domains</h3>
+<p>ROS 2 nodes find each other automatically over DDS — any node on the same
+machine (or LAN) with the same <code>ROS_DOMAIN_ID</code> joins the same
+"bus." Powerful, and dangerous: a running simulator publishes
+<code>/odom</code>, and if a test harness also publishes <code>/odom</code>,
+the controller under test receives <em>two contradictory realities</em>.</p>
+
+<div class="say"><b>Say it like this</b>
+"Every automated test runs in an isolated DDS domain. It's the ROS 2
+equivalent of a clean-room: collisions with a running simulator become
+impossible by construction, not by discipline."</div>
+
+<h3>Workspaces and launch files</h3>
+<p><code>colcon build --symlink-install</code> builds a workspace;
+<code>source install/setup.bash</code> overlays it onto your shell. We keep
+<em>two</em> workspaces — the sim's and ours — that meet only over topics.
+Launch files are Python programs that start many nodes at once:
+<code>autonomy.launch.py</code> starts all four controllers, the visualization
+bridge, and the EKF stack, each with its YAML parameters.</p>
+
+<details class="quiz"><summary>Why do all four mission controllers run at the same time without fighting?</summary>
+<div class="body">Because none of them acts until the state machine says so.
+Each controller subscribes to the sim's state string and engages only when
+<em>its own</em> mission is selected AND the state is DRIVING (§3). The other
+three stay silent. One car runs one mission at a time anyway — that's the
+competition format, so the software mirrors it.</div></details>
+
+<details class="quiz"><summary>What happens if two nodes publish to /cmd at once?</summary>
+<div class="body">Both streams interleave and the car judders between two
+opinions — there is no arbitration in ROS 2 topics. That's exactly why
+mission gating matters, and why harness tests get an isolated
+<code>ROS_DOMAIN_ID</code>.</div></details>
+
+<!-- ============================================================ -->
+<h2 id="s3"><span class="no">3</span>Authority: the state machine &amp; the RES</h2>
+
+<p>An autonomous race car has no driver to hit the brakes, so Formula Student
+moves that authority <em>outside</em> the car: the <strong>RES</strong>
+(Remote Emergency System) is a radio remote in a track marshal's hand with an
+E-stop (fires the Emergency Brake System) and a GO button (the final human
+authorization to start). Lost radio link = automatic stop.</p>
+
+<p>In the sim, the RES is virtual: a Foxglove panel (named "Gross Funk" after
+the real hardware) or the <code>/go</code> service moves the VCU state machine
+<code>AS_READY → AS_DRIVING</code>; the <code>/ebs</code> service throws it into
+<code>EMERGENCY_BRAKE</code>. Our controllers are built <em>under</em> that
+authority — this gate is at the top of every controller:</p>
+
+<div class="fname">trackdrive_driver.py — the mission gate</div>
+<pre><code>def on_state(self, msg):
+    # engage only when OUR mission is selected AND the VCU has
+    # released control; otherwise stay silent
+    mine = ("AMIState: %s" % self.mission) in msg.data
+    driving = mine and "ASState: DRIVING" in msg.data
+    ...
+    self.driving = driving
+
+def tick(self):
+    if not self.driving:
+        return          # an RES stop is obeyed by construction
+</code></pre>
+
+<div class="say"><b>Say it like this</b>
+"Our controllers never decide when they're allowed to drive. The state
+machine tells them, and the RES commands the state machine. An emergency stop
+is obeyed by construction, not by convention — and because the interface is
+just a state topic, the identical code obeys the real RES hardware on a real
+car."</div>
+
+<!-- ============================================================ -->
+<h2 id="s4"><span class="no">4</span>Controller 1 — Acceleration, or: P-control</h2>
+
+<p>The FS Acceleration event: standstill → 75 m straight, fast → autonomous
+full stop. The key constraint we discovered by reading the sim's source: the
+sim consumes <strong>only</strong> <code>drive.acceleration</code> and
+<code>drive.steering_angle</code> from <code>/cmd</code> — the
+<code>drive.speed</code> field is silently ignored (upstream bug #1). You
+cannot tell the car "go 8 m/s"; like a real car, it only understands pedals.
+So speed regulation is <em>our</em> job — a feedback loop:</p>
+
+<div class="fname">accel_driver.py — the whole control law</div>
+<pre><code>def tick(self):
+    if not self.driving:
+        return
+
+    if not self.braking and self.distance >= self.finish_distance:
+        self.braking = True                    # latched: crossed 75 m
+
+    target = 0.0 if self.braking else self.target_speed
+    accel = self.kp * (target - self.speed)    # P-control on speed error
+    accel = max(-self.brake_limit, min(self.accel_limit, accel))
+
+    if self.braking and abs(self.speed) < self.stop_speed:
+        accel = -self.brake_hold               # hold the brake once stopped
+
+    cmd = AckermannDriveStamped()
+    cmd.drive.acceleration = float(accel)
+    cmd.drive.steering_angle = 0.0             # straight-line event
+    self.pub.publish(cmd)
+</code></pre>
+
+<p><strong>P-control in one sentence:</strong> command a correction
+proportional to the error. Going 6 m/s when the target is 8? Error = 2, so
+push 3&nbsp;m/s² (k<sub>p</sub>=1.5). Too fast? The same formula brakes.
+Fifty times a second. The same three lines both cruise <em>and</em> stop the
+car — braking is just P-control toward a target of zero.</p>
+
+<p><strong>The physics check</strong> — braking from v = 8 m/s at
+a = 4 m/s²: distance = v²/2a = 64/8 = <strong>8 m</strong>. Measured stop:
+~84 m after braking at 75 — a 9 m stop including actuator lag.
+Measured-matches-predicted is the strongest sentence in any engineering
+presentation.</p>
+
+<details class="quiz"><summary>Why only P — where are the I and D terms?</summary>
+<div class="body">We measured that we don't need them: the plant is nearly
+ideal (we command acceleration directly), the car holds 8 m/s with no
+steady-state offset and no oscillation, and stops cleanly. Integral and
+derivative terms fix problems we demonstrated we don't have; adding them is a
+two-line change if the real vehicle disagrees.</div></details>
+
+<details class="quiz"><summary>Can holding the brake command make the car reverse?</summary>
+<div class="body">No — the vehicle model clamps negative acceleration to zero
+once the car is stationary (verified in the sim source, mirrored in our
+harnesses). A held brake is a parking brake, not reverse gear.</div></details>
+
+<!-- ============================================================ -->
+<h2 id="s5"><span class="no">5</span>Controller 2 — Skidpad, or: pure pursuit</h2>
+
+<p>Skidpad: a figure-8 — two laps clockwise around the right circle, two
+counter-clockwise around the left (radius 9.25 m), then exit. This controller
+drives <em>pure geometry from odometry</em>: it knows the figure-8 shape from
+the rulebook and tracks it — no cones involved. That design choice matters
+later (§10): it makes skidpad the controller most exposed to odometry error.</p>
+
+<p><strong>Pure pursuit in one sentence:</strong> aim at a point a fixed
+distance ahead <em>on the path</em>, and steer with the bicycle-geometry
+formula that would arc you through it:</p>
+
+<pre><code># alpha = bearing to the lookahead point, ld = distance to it
+steer = atan2(2 * wheelbase * sin(alpha), ld)
+</code></pre>
+
+<p>That formula is the whole steering law for both skidpad and trackdrive.
+It self-corrects: drift off the path and the lookahead point's bearing grows,
+steering you back. Verified against its harness: <strong>5 cm max radial
+error, exactly 8π radians of turning</strong> (two laps each way), clean stop.
+In the full simulator (heavier physics): 0.204 m mean circle error — the gap
+between those two numbers is the <em>vehicle-dynamics offset</em>, and it
+becomes important in §11.</p>
+
+<!-- ============================================================ -->
+<h2 id="s6"><span class="no">6</span>Controller 3 — Trackdrive, or: steering from perception</h2>
+
+<p>Trackdrive/autocross: an unknown circuit marked by blue cones (left edge)
+and yellow cones (right edge). No map. The controller steers entirely from
+<strong>car-relative cone detections</strong>: find the nearest blue, the
+nearest yellow, aim at their midpoint with pure pursuit. One side missing?
+Offset half a track width from the side you can see. Nothing visible? Slow,
+hold the wheel, and stop if blindness persists.</p>
+
+<div class="fname">trackdrive_driver.py — target selection (trimmed)</div>
+<pre><code>def pick_target(self):
+    left, right = [], []
+    for cone in self.cones_msg.cones:
+        label = classify(cone)              # highest color probability
+        if label == "blue":   left.append(cone)
+        if label == "yellow": right.append(cone)
+
+    if left and right:                      # midpoint of nearest pair
+        return midpoint(nearest(left), nearest(right))
+    if left:                                # one-sided fallback:
+        return offset(nearest(left), -self.half_track)
+    if right:
+        return offset(nearest(right), +self.half_track)
+    return None                             # blind
+</code></pre>
+
+<p>Odometry is used <em>only</em> to count laps (leave the start area, come
+back near it) and for speed feedback — never for path geometry. That makes
+trackdrive the mirror image of skidpad: <strong>perception-anchored</strong>
+where skidpad is <strong>geometry-anchored</strong>. The pair of them turns
+out to be a built-in science experiment (§10).</p>
+
+<p>Verified: 3/3 laps on a 92 m circuit, 0.10 m max deviation from
+centerline, zero cones hit.</p>
+
+<div class="say"><b>Say it like this</b>
+"Trackdrive is the perception socket made real: it consumes the object layer
+of our interface contract, so replacing simulated cone detections with a real
+neural network is a pure substitution — the controller cannot tell the
+difference, and we proved that by feeding it three different cone sources."</div>
+
+<!-- ============================================================ -->
+<h2 id="s7"><span class="no">7</span>Testing: SIL harnesses &amp; the bicycle model</h2>
+
+<p><strong>SIL = software-in-the-loop.</strong> Each controller has a harness
+(<code>sil_accel</code>, <code>sil_skidpad</code>, <code>sil_trackdrive</code>)
+that <em>replaces the entire simulator</em> with ~200 lines of substitute
+physics. The controller can't tell: it sees the same topics. But a harness
+episode runs in seconds, needs no GPU, is seeded (same seed → identical run),
+and prints one machine-readable verdict line:</p>
+
+<pre><code>RESULT laps=3 dev_mean=0.048 dev_max=0.105 cones_hit=0 max_v=3.80 time=95.2 final_v=0.000 seed=1000
+</code></pre>
+
+<p>The physics inside is the <strong>kinematic bicycle model</strong> — the
+standard minimal car: four lines of math integrated at 50 Hz.</p>
+
+<div class="fname">sil_trackdrive.py — the vehicle, complete</div>
+<pre><code>self.steer += (self.steer_cmd - self.steer) * DT / STEER_TAU   # actuator lag
+a = 0.0 if (self.v <= 0.0 and self.a_cmd < 0.0) else self.a_cmd # no reverse
+self.v = max(0.0, self.v + a * DT)
+self.yaw += self.v / WHEELBASE * math.tan(self.steer) * DT      # bicycle
+self.x += self.v * math.cos(self.yaw) * DT
+self.y += self.v * math.sin(self.yaw) * DT
+</code></pre>
+
+<p>Two design rules make the harnesses scientifically honest:</p>
+<ul>
+<li><strong>Score against truth, publish the lie.</strong> The harness owns
+ground truth, so its metrics (deviation, cones hit) always use the true
+state — while the odometry and cone detections it <em>publishes</em> can be
+corrupted by error models (§8). The controller lives in the corrupted world;
+the report card is written in the true one.</li>
+<li><strong>Seeded randomness.</strong> Every random draw comes from
+<code>random.Random(seed)</code>. Same seed = bit-identical episode =
+reproducible bugs and honest A/B comparisons. Independent error sources get
+independent streams (<code>seed+1</code> for odometry) so sweeping one knob
+never resamples another.</li>
+</ul>
+
+<details class="quiz"><summary>Your test physics is fake. Why should anyone believe results from it?</summary>
+<div class="body">Because we checked. §11 is a prediction test: the harness
+predicted the full simulator's behavior under measured odometry drift to
+within 0.01 m on the mean. Where it disagreed (worst-case error), we found
+the mechanistic reason and documented the fix. A model you've validated
+against a richer model — and annotated where it breaks — is an instrument,
+not a toy.</div></details>
+
+<!-- ============================================================ -->
+<h2 id="s8"><span class="no">8</span>Monte-Carlo sweeps &amp; error models</h2>
+
+<p>One passing run proves little — the interesting question is <em>"how much
+error can the mission tolerate?"</em>. The machinery:
+<code>run_sweeps.py</code> launches driver + harness as subprocesses on an
+isolated domain, N seeded episodes per parameter value, one CSV row each;
+<code>plot_sweeps.py</code> turns CSVs into success-rate curves.</p>
+
+<pre><code># the state-estimation experiment, 20 episodes per point, 3x realtime
+python3 scripts/run_sweeps.py --mission skidpad --episodes 20 --speed 3 \
+    --sweep odom_yaw_drift_deg_per_sqrt_min=0,1,2,4,8 --out skid_drift.csv
+</code></pre>
+
+<p>The harness sensor is a <strong>parameterized error model</strong>. For
+perception (sil_trackdrive): detection probability per range bucket, bearing
+and range noise, color flips, false positives (Poisson per frame), and a
+latency buffer. For odometry (all harnesses, shared
+<code>odom_corruptor.py</code>): white noise plus a seeded
+<strong>random-walk drift</strong> —</p>
+
+<pre><code>def corrupt(self, x, y, yaw, v):
+    g = self.rng.gauss
+    self.drift_x   += g(0.0, self.drift_q)       # random walk: accumulates
+    self.drift_yaw += g(0.0, self.yaw_drift_q)
+    return (x + self.drift_x + g(0.0, self.pos_noise),
+            y + self.drift_y + g(0.0, self.pos_noise),
+            yaw + self.drift_yaw + g(0.0, self.yaw_noise),
+            v + g(0.0, self.vel_noise))
+</code></pre>
+
+<h3>Findings so far (each one presentation-ready)</h3>
+<ul>
+<li><strong>Uniform detection dropout is nearly harmless.</strong> Trackdrive
+passes at 5% detection probability, because detections integrate across 16 Hz
+frames. The dangerous errors are <em>structured</em>: range-concentrated
+misses, color flips, false positives, latency.</li>
+<li><strong>Odometry drift splits the controllers exactly as architecture
+predicts.</strong> Trackdrive steering is immune (cones don't lie) but its
+odom-based lap counter produces phantom laps. Skidpad error grows
+monotonically with yaw drift: 0.054 / 0.199 / 0.380 / 0.558 m max at
+0/2/4/6 °/√min.</li>
+<li><strong>Curves read backwards are requirements.</strong> "Success collapses
+below X" is a specification for the future perception or state-estimation
+team — derived from data, not asserted from literature.</li>
+</ul>
+
+<div class="say"><b>Say it like this</b>
+"Our episodes cost seconds on a laptop CPU, so we can afford thousands of
+closed-loop runs. Photorealistic simulators cannot — and that's why our
+robustness chapter exists and theirs usually doesn't."</div>
+
+<!-- ============================================================ -->
+<h2 id="s9"><span class="no">9</span>Perception: YOLO, FSOCO, and error profiles</h2>
+
+<p><strong>The dataset:</strong> FSOCO — thousands of labeled cone photos
+contributed by FS teams. <strong>The model:</strong> YOLOv5-nano ("you only
+look once" — a single-pass detector that outputs bounding boxes + classes),
+trained 50 epochs on the AMZ subset: precision 0.90, recall 0.64,
+mAP@0.5 = 0.736, ~29 ms/frame on CPU. Five classes: blue, yellow, orange,
+large-orange, unknown.</p>
+
+<details><summary>Precision / recall / mAP in plain words</summary>
+<div class="body"><strong>Precision 0.90</strong> — of everything the model
+called a cone, 90% really were (few false alarms).
+<strong>Recall 0.64</strong> — of all real cones, it found 64% (averaged over
+all distances; misses live mostly far away).
+<strong>mAP@0.5</strong> — a combined score across confidence thresholds,
+counting a detection as correct when its box overlaps truth by ≥ 50%.</div></details>
+
+<p><strong>The key architectural fact:</strong> eufs_sim2 renders no camera
+images — its "camera" is a geometric filter over ground-truth cones (110°,
+20 m, with color). So the network can't run in this loop. Instead, the
+platform tests perception in two composable halves:</p>
+
+<ol>
+<li><strong>Measure the model offline, on real photos.</strong>
+<code>extract_error_profile.py</code> runs the trained network over the
+held-out test split and measures <em>how it fails</em>: P(detect) per range
+bucket, color confusion, bearing/range error, false positives per frame.
+Range comes from a classic trick — cone height is regulation-fixed, so
+box height in pixels → distance via the pinhole model.</li>
+<li><strong>Replay those measured failures in the loop.</strong> The harness
+loads the profile JSON and corrupts its cone stream <em>exactly the way the
+real model would</em>. Downstream, the controller can't tell the replica from
+the real detector. The sweep then answers: <em>do this model's specific
+failure patterns break the mission?</em></li>
+</ol>
+
+<div class="say"><b>Say it like this</b>
+"This is standard safety-engineering practice: characterize a component's
+failure statistics, then verify the system tolerates them. Nobody crash-tests
+every airbag chip — they qualify the part and verify the system against its
+spec. Our two-layer contract is what makes that decomposition legitimate."</div>
+
+<details class="quiz"><summary>Why not just run YOLO on simulated images?</summary>
+<div class="body">Domain gap: a network trained on real photos sees synthetic
+renders as out-of-distribution, so its in-sim performance wouldn't represent
+reality — and eufs_sim2 has no images anyway. Measuring on real FSOCO photos
+and replaying the measured statistics is <em>more</em> honest than a pretty
+in-sim demo. (For LiDAR the gap is small — point clouds are geometry — which
+is why the Gazebo route stays defensible for the future LiDAR module.)</div></details>
+
+<!-- ============================================================ -->
+<h2 id="s10"><span class="no">10</span>State estimation: the EKF thread</h2>
+
+<p>Real cars don't get ground-truth position — they <em>estimate</em> it by
+fusing noisy sensors. An <strong>EKF (extended Kalman filter)</strong> keeps a
+state estimate (pose, velocities) and loops two steps hundreds of times a
+second: <strong>predict</strong> (advance the state with a motion model —
+uncertainty grows) and <strong>correct</strong> (blend in each sensor reading,
+weighted by trust — uncertainty shrinks). The trust weights come from
+covariances: R per sensor (carried inside each ROS message), Q for the motion
+model (config). An EKF is <em>tuned</em>, not trained.</p>
+
+<p>We used the standard <code>robot_localization</code> package and fed it the
+sim's raw sensor layer — with two small adapters we had to write because of
+upstream quirks:</p>
+
+<ul>
+<li><code>wheel_odometry</code> — converts the wheel-speed message (rev/s in
+the sim, despite the comment saying RPM — upstream quirk) into a
+covariance-stamped forward velocity, from the mean of the rear wheels.</li>
+<li><code>imu_frontend</code> — the sim never fills the IMU message's
+covariance fields, and a zero covariance would make the filter blindly
+over-trust it; this node stamps the configured variances on.</li>
+</ul>
+
+<div class="fname">config/ekf_params.yaml — what gets fused (dead-reckoning: no GPS, no compass)</div>
+<pre><code>imu0: /imu/data_cov          # fuse: yaw rate + forward acceleration
+imu0_config: [false, false, false,   false, false, false,
+              false, false, false,   false, false, true,
+              true,  false, false]
+twist0: /wheel_odometry/twist        # fuse: vx (+ vy pinned ~0: cars
+twist0_config: [..., true, true, false, ...]   # don't slide sideways)
+</code></pre>
+
+<p><strong>Measured</strong> (83 m mission, EKF vs ground truth): position
+drift 2.0 m = <strong>2.4% of distance traveled</strong>, heading error 2.5°,
+velocity noise σ 0.017 m/s. Those numbers calibrated the harness knobs — the
+Monte-Carlo sweeps now pivot around a <em>measured</em> estimator.</p>
+
+<p><strong>The in-the-loop demo:</strong> the accel mission ran entirely on
+<code>/odometry/filtered</code>. The driver believed "stopped at 82.9 m";
+ground truth: 82.88 m — <strong>two centimeters apart</strong> — while the
+EKF's <em>absolute</em> pose was over 80 m wrong (dead reckoning can't see
+teleports and its heading drift accumulates forever).</p>
+
+<div class="say"><b>Say it like this</b>
+"Absolute pose drifts without bound; relative quantities stay usable. Our
+acceleration controller only needs distance-from-start, so it survives dead
+reckoning almost perfectly. Skidpad needs absolute geometry, so it degrades —
+and quantifying exactly how fast is the next section."</div>
+
+<details class="quiz"><summary>Could we "train" the EKF on data?</summary>
+<div class="body">Not train — <em>tune</em>. Q and R are static matrices.
+But the sim gives ground truth for free, so tuning can be automated: grid-
+search Q values, score each by RMSE against truth, keep the best. And when a
+real IMU arrives: hours of stationary logging → Allan-variance analysis →
+its measured noise density and bias instability go into both the filter's R
+and the sim's IMU config — the simulator then impersonates your actual part
+before the car exists.</div></details>
+
+<!-- ============================================================ -->
+<h2 id="s11"><span class="no">11</span>The prediction test — validating the method itself</h2>
+
+<p>The sharpest question anyone can ask: <em>"your thousands of test runs
+used fake noise — why believe them?"</em> The answer is an experiment
+with the structure <strong>model predicts → reality measures → compare</strong>:</p>
+
+<ol>
+<li>The SIL sweep produced a curve: skidpad circle error vs yaw drift.</li>
+<li>The real EKF measured 3.1 °/√min of yaw drift.</li>
+<li>Reading 3.1 off the curve, plus the vehicle-dynamics offset from the
+full-sim control run, <strong>predicts mean error ≈ 0.32 m</strong>.</li>
+<li>Then we ran skidpad on the actual EKF in the actual simulator and
+measured the true circle error.</li>
+</ol>
+
+<figure>
+<svg viewBox="0 0 560 300" role="img" aria-label="Skidpad circle error versus yaw drift: SIL curve, measured EKF points">
+  <line class="axis" x1="60" y1="250" x2="530" y2="250"/>
+  <line class="axis" x1="60" y1="30"  x2="60"  y2="250"/>
+  <line class="gridl" x1="60" y1="184" x2="530" y2="184"/>
+  <line class="gridl" x1="60" y1="118" x2="530" y2="118"/>
+  <line class="gridl" x1="60" y1="52"  x2="530" y2="52"/>
+  <text x="50" y="254" text-anchor="end" font-size="11">0</text>
+  <text x="50" y="188" text-anchor="end" font-size="11">0.25</text>
+  <text x="50" y="122" text-anchor="end" font-size="11">0.50</text>
+  <text x="50" y="56"  text-anchor="end" font-size="11">0.75</text>
+  <text x="20" y="150" font-size="11" transform="rotate(-90 20 150)" text-anchor="middle">circle error, max (m)</text>
+  <text x="60"  y="268" text-anchor="middle" font-size="11">0</text>
+  <text x="207" y="268" text-anchor="middle" font-size="11">2</text>
+  <text x="354" y="268" text-anchor="middle" font-size="11">4</text>
+  <text x="501" y="268" text-anchor="middle" font-size="11">6</text>
+  <text x="295" y="290" text-anchor="middle" font-size="11.5">odometry yaw drift (deg/√min)</text>
+  <!-- SIL curve: (0,.054)(2,.199)(4,.380)(6,.558)  y = 250 - err*264 -->
+  <polyline points="60,235.7 207,197.5 354,149.7 501,102.7"
+            fill="none" stroke="var(--accent)" stroke-width="2.2"/>
+  <circle cx="60"  cy="235.7" r="4" fill="var(--accent)"/>
+  <circle cx="207" cy="197.5" r="4" fill="var(--accent)"/>
+  <circle cx="354" cy="149.7" r="4" fill="var(--accent)"/>
+  <circle cx="501" cy="102.7" r="4" fill="var(--accent)"/>
+  <text x="120" y="212" font-size="11.5" fill="var(--accent)">SIL harness curve</text>
+  <!-- full sim control at drift 0: 0.207 -->
+  <rect x="55" y="190.4" width="10" height="10" fill="none" stroke="var(--good)" stroke-width="2"/>
+  <text x="72" y="192" font-size="11.5" fill="var(--good)">full sim, ground truth (0.207)</text>
+  <!-- full sim EKF at 3.08: 0.69  x=60+3.08*73.5=286  y=250-0.69*264=67.8 -->
+  <rect x="281" y="62.8" width="10" height="10" fill="none" stroke="var(--bad)" stroke-width="2"/>
+  <text x="298" y="66" font-size="11.5" fill="var(--bad)">full sim ON EKF (max 0.69)</text>
+  <!-- prediction marker at 3.08 on curve+offset: mean track: put predicted max ~0.30+dyn? show predicted band -->
+  <line x1="286" y1="250" x2="286" y2="55" stroke="var(--ink3)" stroke-dasharray="4 4"/>
+  <text x="286" y="46" text-anchor="middle" font-size="11" >measured EKF drift: 3.1</text>
+</svg>
+<figcaption>The SIL curve (blue) under synthetic drift; squares are full-simulator
+measurements. At the EKF's measured drift, the mean error matched the additive
+prediction within 0.01 m; the max exceeded it (see verdict).</figcaption>
+</figure>
+
+<div class="tablewrap"><table>
+<tr><th>Run</th><th>mean (m)</th><th>max (m)</th></tr>
+<tr><td>SIL harness, no drift</td><td>0.015</td><td>0.054</td></tr>
+<tr><td>Full sim, ground-truth odom <em>(control — also the first full-sim skidpad validation)</em></td><td>0.204</td><td>0.207</td></tr>
+<tr><td><strong>Prediction</strong> at measured 3.1 °/√min (dynamics offset + SIL curve)</td><td>≈ 0.32</td><td>≈ 0.30 + offset</td></tr>
+<tr><td><strong>Full sim, driving on the EKF</strong></td><td class="g">0.33</td><td class="w">0.69</td></tr>
+</table></div>
+
+<p><strong>Verdict:</strong> the <em>mean</em> validated to within 0.01 m —
+the cheap harness is a faithful instrument. The <em>max</em> was ~2×
+underpredicted, and we know why: real EKF drift is a <strong>time-correlated
+bias ramp</strong> (error concentrates late in the run), while the harness
+knob is a white random walk that wanders both ways. The fix is already
+specified: a bias-ramp mode for the corruptor. A validated instrument
+<em>plus</em> a mechanistically-explained discrepancy is a stronger result
+than either alone.</p>
+
+<p>Bonus: the mission still <em>passed</em> on the EKF — full entry, four
+laps, exit, stop; worst circle error 0.69 m against a 1.5 m half-lane.</p>
+
+<!-- ============================================================ -->
+<h2 id="s12"><span class="no">12</span>Six bugs — the platform earning its keep</h2>
+
+<p>The thesis says sim-first development finds real defects before hardware
+exists. Score so far: six, four of them in software other people shipped.</p>
+
+<div class="tablewrap"><table>
+<tr><th></th><th>Bug</th><th>How found</th></tr>
+<tr><td><span class="pill up">upstream</span></td><td><code>/cmd drive.speed</code> silently ignored — only acceleration + steering are consumed</td><td>reading <code>control.cpp</code> when the car wouldn't brake</td></tr>
+<tr><td><span class="pill up">upstream</span></td><td>fused <code>/cones</code> topic advertised but <em>never published</em>; real feed is <code>/cones/lenient</code></td><td>tracing why trackdrive saw no cones</td></tr>
+<tr><td><span class="pill up">upstream</span></td><td><code>/ros_can/twist</code> angular axes scrambled (yaw-rate slot carries roll) + covariance hard-zeroed</td><td>EKF input recon — never fuse this topic</td></tr>
+<tr><td><span class="pill up">upstream</span></td><td>wheel speeds are rev/s though the message says RPM; IMU covariances never filled</td><td>writing the EKF adapters</td></tr>
+<tr><td><span class="pill own">ours</span></td><td>blind-stop clocked from last cone <em>message</em> — but a live detector seeing nothing still publishes empty arrays at frame rate, so a never-seeing car crept at min-speed forever (335 m off track)</td><td><strong>first Monte-Carlo sweep</strong>, zero-detection case. Fixed: clocked from last usable <em>target</em>; a blind car refuses to move</td></tr>
+<tr><td><span class="pill own">ours</span></td><td>skidpad metric scored the drifted <em>exit leg</em> against the circles → phantom 16.9 m error</td><td><strong>the prediction test itself</strong> — the experiment calibrated its own instrument. Fixed: x-span gate</td></tr>
+</table></div>
+
+<div class="say"><b>Say it like this</b>
+"The platform found four bugs in the simulator it builds on and two in our own
+code — one of which, the blind-creep bug, would have shipped to a real car
+and driven it blind at 1.5 m/s. That's the whole argument for verification
+infrastructure, told as a story instead of a claim."</div>
+
+<!-- ============================================================ -->
+<h2 id="s13"><span class="no">13</span>Cheat sheet</h2>
+
+<h3>Numbers worth memorizing</h3>
+<ul>
+<li>Accel: holds 8 m/s, brakes at 75 m, stops ~84 m (v²/2a = 8 m + lag).</li>
+<li>Skidpad SIL: 5 cm max radial error, exactly 8π rad of turn.</li>
+<li>Trackdrive SIL: 3/3 laps, 0.10 m max deviation, 0 cones hit.</li>
+<li>YOLO on FSOCO: P 0.90 / R 0.64 / mAP50 0.736, ~29 ms CPU.</li>
+<li>EKF: 2.4% drift per distance traveled, 2.5° heading, σ<sub>v</sub> 0.017 m/s.</li>
+<li>Prediction test: mean predicted 0.32 vs measured 0.33 m.</li>
+<li>On-EKF accel: belief 82.9 m vs truth 82.88 m — while absolute pose was 80 m off.</li>
+</ul>
+
+<h3>Commands</h3>
+<pre><code># full sim (two terminals, both sourced)
+eufs sim run
+ros2 launch fs_autonomy autonomy.launch.py            # + realistic:=true for EKF-driven
+
+# headless mission (no Foxglove)
+ros2 service call /set_mission eufs_msgs/srv/SetMission "{mission: 2}"  # SKIDPAD
+ros2 service call /go std_srvs/srv/Trigger
+
+# Monte-Carlo
+python3 scripts/run_sweeps.py --mission skidpad --episodes 20 --speed 3 \
+    --sweep odom_yaw_drift_deg_per_sqrt_min=0,1,2,4,8 --out drift.csv
+python3 scripts/plot_sweeps.py drift.csv --x odom_yaw_drift_deg_per_sqrt_min
+</code></pre>
+
+<h3>Glossary</h3>
+<div class="tablewrap"><table>
+<tr><td><b>Node / topic</b></td><td>a ROS 2 program / the named, typed stream it publishes or subscribes to</td></tr>
+<tr><td><b>DDS domain</b></td><td>the shared discovery bus; isolate tests with <code>ROS_DOMAIN_ID</code></td></tr>
+<tr><td><b>SIL</b></td><td>software-in-the-loop: real controller, substitute physics</td></tr>
+<tr><td><b>P-control</b></td><td>correction proportional to error — our speed law</td></tr>
+<tr><td><b>Pure pursuit</b></td><td>steer to arc through a lookahead point — our steering law</td></tr>
+<tr><td><b>Kinematic bicycle</b></td><td>minimal car model: yaw rate = v·tan(steer)/wheelbase</td></tr>
+<tr><td><b>EKF</b></td><td>predict-correct sensor fusion; tuned via Q/R covariances, not trained</td></tr>
+<tr><td><b>Dead reckoning</b></td><td>integrating velocity/heading with no absolute fix — drifts without bound</td></tr>
+<tr><td><b>Error profile</b></td><td>a component's measured failure statistics, replayable in the loop</td></tr>
+<tr><td><b>RES / EBS</b></td><td>marshal's remote (GO + E-stop) / the brake system it fires</td></tr>
+<tr><td><b>FSOCO</b></td><td>community dataset of labeled cone photos from FS teams</td></tr>
+<tr><td><b>mAP</b></td><td>detection quality score: box overlaps truth ≥ 50% counts as correct</td></tr>
+</table></div>
+
+<p class="meta" style="margin-top:40px">Companion documents in the repo:
+README.md (runbooks, containment rules) · docs/PROJECT_HANDOFF.md (strategy,
+results, future ideas) · docs/sem7-gantt.html (the plan as presented).</p>
+
+</div></main>
+</div>
+
+<script>
+(function () {
+  // ---- tiny Python/bash highlighter (regex, deliberately simple) ----
+  var kw = /\b(def|class|return|if|elif|else|for|while|in|not|and|or|import|from|as|None|True|False|self|try|except|finally|raise|with|lambda|pass|break|continue)\b/g;
+  document.querySelectorAll("pre code").forEach(function (el) {
+    var h = el.innerHTML;
+    h = h.replace(/(#[^\n<]*)/g, '<span class="c">$1</span>');
+    h = h.replace(/("(?:[^"\\\n]|\\.)*")/g, '<span class="s">$1</span>');
+    h = h.replace(kw, '<span class="k">$1</span>');
+    h = h.replace(/\b(\d+\.?\d*)\b/g, '<span class="n">$1</span>');
+    h = h.replace(/\b([a-zA-Z_][a-zA-Z0-9_]*)\(/g, '<span class="f">$1</span>(');
+    el.innerHTML = h;
+  });
+
+  // ---- TOC active-section highlight ----
+  var links = Array.prototype.slice.call(document.querySelectorAll("#toc a"));
+  var heads = links.map(function (a) {
+    return document.getElementById(a.getAttribute("href").slice(1));
+  });
+  function onScroll() {
+    var y = window.scrollY + 90, active = 0;
+    heads.forEach(function (h, i) { if (h && h.offsetTop <= y) active = i; });
+    links.forEach(function (a, i) { a.classList.toggle("active", i === active); });
+  }
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+})();
+</script>
