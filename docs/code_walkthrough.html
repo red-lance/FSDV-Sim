@@ -1,0 +1,2024 @@
+<title>FSDV-Sim Code Walkthrough</title>
+<style>
+  :root {
+    --paper: #FFFFFF; --ink: #1D2833; --ink2: #4A5A6A; --ink3: #7A8894;
+    --accent: #2F6DB5; --head: #2E5D8F; --rule: #D8E0E7;
+    --codebg: #F2F5F8; --codeink: #24303C;
+    --good: #2E7D4F; --warn: #A66A1A; --bad: #B03A3A;
+    --card: #F7F9FB; --quiz: #EFF4FA;
+    --k: #9C36B5; --s: #2E7D4F; --c: #8A97A3; --n: #B05A1F; --f: #2F6DB5;
+    --oursbg: color-mix(in srgb, var(--accent) 10%, transparent);
+    --eufsbg: color-mix(in srgb, var(--warn) 12%, transparent);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #131A22; --ink: #E8EDF3; --ink2: #AEBBC8; --ink3: #7E8B98;
+      --accent: #7FB0E0; --head: #7FB0E0; --rule: #2A3441;
+      --codebg: #1B2430; --codeink: #D5DEE8;
+      --good: #6CC393; --warn: #D9A05B; --bad: #E08A8A;
+      --card: #18212B; --quiz: #1A2532;
+      --k: #D186E0; --s: #6CC393; --c: #67747F; --n: #DFA06A; --f: #7FB0E0;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #131A22; --ink: #E8EDF3; --ink2: #AEBBC8; --ink3: #7E8B98;
+    --accent: #7FB0E0; --head: #7FB0E0; --rule: #2A3441;
+    --codebg: #1B2430; --codeink: #D5DEE8;
+    --good: #6CC393; --warn: #D9A05B; --bad: #E08A8A;
+    --card: #18212B; --quiz: #1A2532;
+    --k: #D186E0; --s: #6CC393; --c: #67747F; --n: #DFA06A; --f: #7FB0E0;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: "Seaford", "Segoe UI", "Avenir Next", "Helvetica Neue", system-ui, sans-serif;
+    font-size: 16px; line-height: 1.62;
+  }
+  .wrap { display: flex; max-width: 1280px; margin: 0 auto; }
+
+  nav {
+    position: sticky; top: 0; align-self: flex-start;
+    width: 258px; flex: none; height: 100vh; overflow-y: auto;
+    padding: 28px 18px 40px 24px; border-right: 1px solid var(--rule);
+    font-size: 13px;
+  }
+  nav .brand { font-family: Charter, Georgia, serif; font-size: 16.5px; font-weight: 700; margin-bottom: 2px; }
+  nav .sub { color: var(--ink3); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 14px; }
+  nav .part { color: var(--ink3); font-size: 10.5px; letter-spacing: .09em; text-transform: uppercase; margin: 16px 0 3px 8px; }
+  nav a {
+    display: block; color: var(--ink2); text-decoration: none;
+    padding: 3px 8px; border-radius: 5px; border-left: 2px solid transparent;
+  }
+  nav a:hover { color: var(--accent); }
+  nav a.active { color: var(--accent); border-left-color: var(--accent); background: var(--card); }
+  nav a:focus-visible { outline: 2px solid var(--accent); }
+
+  main { flex: 1; min-width: 0; padding: 34px 40px 100px; }
+  .col { max-width: 78ch; }
+
+  h1 { font-family: Charter, Georgia, serif; font-size: 32px; margin: 0 0 4px; text-wrap: balance; }
+  .tagline { color: var(--ink2); font-size: 16px; font-style: italic; font-family: Charter, Georgia, serif; margin: 0 0 8px; }
+  .meta { color: var(--ink3); font-size: 13px; margin-bottom: 26px; }
+  h2 {
+    font-family: Charter, Georgia, serif; font-size: 25px; margin: 56px 0 6px;
+    padding-top: 20px; border-top: 2px solid var(--rule); text-wrap: balance;
+  }
+  h2 .no { color: var(--accent); font-variant-numeric: tabular-nums; margin-right: 8px; }
+  h2 .part-label {
+    display: block; font-family: "Seaford", system-ui, sans-serif; font-size: 12px;
+    letter-spacing: .1em; text-transform: uppercase; color: var(--ink3); font-weight: 600;
+    margin-bottom: 6px;
+  }
+  h3 { font-size: 17px; margin: 10px 0 6px; }
+  p { margin: 10px 0; }
+  li { margin: 4px 0; }
+  a { color: var(--accent); }
+  strong { font-weight: 650; }
+
+  pre {
+    background: var(--codebg); color: var(--codeink);
+    border: 1px solid var(--rule); border-radius: 8px;
+    padding: 13px 15px; overflow-x: auto; font-size: 12.8px; line-height: 1.56;
+    margin: 10px 0;
+  }
+  code, pre {
+    font-family: "Cascadia Code", "SF Mono", Consolas, "DejaVu Sans Mono", monospace;
+  }
+  p code, li code, td code {
+    background: var(--codebg); border: 1px solid var(--rule);
+    padding: 1px 5px; border-radius: 4px; font-size: 13px;
+  }
+  pre .k { color: var(--k); } pre .s { color: var(--s); }
+  pre .c { color: var(--c); font-style: italic; } pre .n { color: var(--n); }
+  pre .f { color: var(--f); }
+  .ln { color: var(--ink3); user-select: none; display: inline-block; width: 2.6em; text-align: right; margin-right: 10px; opacity: .55; }
+
+  /* file cards */
+  .filecard {
+    border: 1px solid var(--rule); border-radius: 10px; margin: 18px 0;
+    background: var(--card); overflow: hidden;
+  }
+  .filecard > summary {
+    list-style: none; cursor: pointer; padding: 13px 18px;
+    display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+  }
+  .filecard > summary::-webkit-details-marker { display: none; }
+  .filecard > summary::before { content: "▸"; color: var(--accent); margin-right: 2px; font-size: 12px; }
+  .filecard[open] > summary::before { content: "▾"; }
+  .filecard .path {
+    font-family: "Cascadia Code", Consolas, monospace; font-size: 14px; font-weight: 700; color: var(--ink);
+  }
+  .filecard .loc { color: var(--ink3); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .filecard .purpose { color: var(--ink2); font-size: 13.5px; flex: 1 1 260px; }
+  .filecard .side {
+    display: inline-block; font-size: 10.5px; font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; padding: 1px 8px; border-radius: 20px;
+  }
+  .side.ours { background: var(--oursbg); color: var(--accent); }
+  .side.eufs { background: var(--eufsbg); color: var(--warn); }
+  .filecard .inner { padding: 4px 18px 18px; border-top: 1px solid var(--rule); }
+  .filecard .say {
+    border-left: 3px solid var(--good); background: color-mix(in srgb, var(--good) 8%, var(--card));
+    padding: 9px 14px; border-radius: 0 8px 8px 0; margin: 14px 0 4px; font-size: 14.5px;
+  }
+  .filecard .say b { color: var(--good); font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; display: block; margin-bottom: 2px; }
+
+  .bugbox {
+    border: 1.5px solid var(--bad); background: color-mix(in srgb, var(--bad) 8%, var(--card));
+    border-radius: 8px; padding: 10px 14px; margin: 12px 0; font-size: 14.5px;
+  }
+  .bugbox b { color: var(--bad); font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; display: block; margin-bottom: 3px; }
+
+  details.quiz {
+    border: 1px solid var(--rule); border-radius: 8px; background: var(--quiz); margin: 10px 0;
+  }
+  details.quiz summary {
+    cursor: pointer; padding: 9px 14px; font-weight: 600; font-size: 14px; color: var(--ink2);
+  }
+  details.quiz summary::before { content: "Q · "; color: var(--accent); }
+  details.quiz[open] summary { border-bottom: 1px solid var(--rule); color: var(--accent); }
+  details.quiz .body { padding: 4px 16px 10px; font-size: 14.5px; }
+
+  table { border-collapse: collapse; width: 100%; font-size: 13.8px; margin: 12px 0; font-variant-numeric: tabular-nums; }
+  .tablewrap { overflow-x: auto; }
+  th { text-align: left; background: var(--codebg); }
+  th, td { border: 1px solid var(--rule); padding: 6px 9px; }
+  td.g { color: var(--good); font-weight: 600; } td.b { color: var(--bad); font-weight: 600; } td.w { color: var(--warn); font-weight: 600; }
+
+  .rubric-item {
+    border: 1px solid var(--rule); border-radius: 10px; padding: 14px 18px; margin: 14px 0; background: var(--card);
+  }
+  .rubric-item h3 { margin-top: 0; color: var(--accent); }
+  .rubric-item .req { color: var(--ink3); font-size: 12.5px; font-style: italic; margin-bottom: 8px; }
+
+  .fillin {
+    border: 1.5px dashed var(--ink3); border-radius: 8px; padding: 12px 16px; margin: 10px 0;
+    color: var(--ink3); font-size: 14px; background: transparent;
+  }
+  .fillin b { color: var(--ink2); }
+
+  .pill { display: inline-block; border-radius: 20px; padding: 0 9px; font-size: 12px; font-weight: 600; }
+  .pill.up { background: var(--eufsbg); color: var(--warn); border: 1px solid var(--warn); }
+  .pill.own { background: var(--oursbg); color: var(--accent); border: 1px solid var(--accent); }
+
+  @media (max-width: 1080px) { nav { display: none; } main { padding: 24px 20px 70px; } }
+  @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="wrap">
+<nav id="toc" aria-label="Contents">
+  <div class="brand">Code Walkthrough</div>
+  <div class="sub">every file · both sides of the wire</div>
+  <div class="part">I · Orientation</div>
+  <a href="#s1">Repo map</a>
+  <div class="part">II · Mission controllers</div>
+  <a href="#accel_driver">accel_driver.py</a>
+  <a href="#skidpad_driver">skidpad_driver.py</a>
+  <a href="#trackdrive_driver">trackdrive_driver.py</a>
+  <div class="part">III · State estimation</div>
+  <a href="#wheel_odometry">wheel_odometry.py</a>
+  <a href="#imu_frontend">imu_frontend.py</a>
+  <div class="part">IV · Test harnesses (SIL)</div>
+  <a href="#odom_corruptor">odom_corruptor.py</a>
+  <a href="#sil_accel">sil_accel.py</a>
+  <a href="#sil_skidpad">sil_skidpad.py</a>
+  <a href="#sil_trackdrive">sil_trackdrive.py</a>
+  <div class="part">V · Support &amp; viz</div>
+  <a href="#cone_viz">cone_viz.py</a>
+  <div class="part">VI · Launch &amp; config</div>
+  <a href="#launches">launch files</a>
+  <a href="#configs">config yamls</a>
+  <a href="#packaging">setup.py / Dockerfile</a>
+  <div class="part">VII · Experiment scripts</div>
+  <a href="#run_sweeps">run_sweeps.py</a>
+  <a href="#plot_sweeps">plot_sweeps.py</a>
+  <a href="#extract_error_profile">extract_error_profile.py</a>
+  <a href="#extract_odom_profile">extract_odom_profile.py</a>
+  <a href="#measure_skidpad">measure_skidpad.py</a>
+  <a href="#check_bridge">check_bridge.py</a>
+  <div class="part">VIII · The eufs_sim2 side</div>
+  <a href="#eufs">meeting the simulator</a>
+  <div class="part">IX · Presentation prep</div>
+  <a href="#prep">mapped to the rubric</a>
+</nav>
+
+<main><div class="col">
+
+<h1>FSDV-Sim — Code Walkthrough</h1>
+<p class="tagline">Every file we wrote, explained block by block, plus the exact simulator code our nodes talk to.</p>
+<p class="meta">Companion to <code>docs/PROJECT_HANDOFF.md</code> and <code>docs/platform_field_guide.html</code> · repo: red-lance/FSDV-Sim · written for the September progress presentation</p>
+
+<p>Read this once top to bottom before the presentation, then use the sticky
+menu to jump to whatever a question is about. Every code block below is the
+<strong>real, current file</strong> — nothing paraphrased. <span class="pill own">ours</span>
+marks a file we wrote (compiles independently, deploys to the Jetson);
+<span class="pill up">eufs</span> marks simulator source we read but do not
+own or modify (Part VIII).</p>
+
+<!-- ============================================================ -->
+<h2 id="s1"><span class="part-label">Part I</span><span class="no">·</span>Repo map</h2>
+
+<pre><code>autonomy_ws/
+├── src/fs_autonomy/
+│   ├── fs_autonomy/            <span class="c"># the Python package -- everything below is one node</span>
+│   │   ├── accel_driver.py     <span class="c"># mission controllers (Part II)</span>
+│   │   ├── skidpad_driver.py
+│   │   ├── trackdrive_driver.py
+│   │   ├── wheel_odometry.py   <span class="c"># EKF input adapters (Part III)</span>
+│   │   ├── imu_frontend.py
+│   │   ├── odom_corruptor.py   <span class="c"># shared error model (Part IV)</span>
+│   │   ├── sil_accel.py        <span class="c"># SIL test harnesses (Part IV)</span>
+│   │   ├── sil_skidpad.py
+│   │   ├── sil_trackdrive.py
+│   │   └── cone_viz.py         <span class="c"># visualization helper (Part V)</span>
+│   ├── launch/                 <span class="c"># Part VI</span>
+│   ├── config/*.yaml           <span class="c"># Part VI</span>
+│   ├── setup.py, package.xml   <span class="c"># Part VI</span>
+│   └── resource/fs_autonomy    <span class="c"># empty marker file ROS 2 needs to see the package</span>
+├── scripts/                    <span class="c"># Part VII -- not ROS nodes, plain Python tools</span>
+├── docker/Dockerfile           <span class="c"># Part VI</span>
+└── docs/                       <span class="c"># this file, the field guide, the handoff doc, the Gantt</span>
+</code></pre>
+
+<p>One rule shapes the whole layout, and it is worth stating up front because
+several questions in the presentation trace back to it: <strong>nothing under
+<code>src/fs_autonomy</code> imports from the simulator.</strong> The only
+shared dependency is <code>eufs_msgs</code> — a package of pure message/service
+<em>definitions</em>, no logic. That is what lets this whole tree be copied to
+a Jetson and built there unchanged (see the Dockerfile in Part VI).</p>
+
+<!-- ============================================================ -->
+<h2 id="accel_driver"><span class="part-label">Part II · Mission controllers</span><span class="no">·</span>accel_driver.py</h2>
+
+<details class="filecard" open>
+<summary>
+  <span class="path">fs_autonomy/accel_driver.py</span>
+  <span class="loc">166 lines</span>
+  <span class="side ours">ours</span>
+  <span class="purpose">ACCELERATION mission: closed-loop speed hold + brake</span>
+</summary>
+<div class="inner">
+
+<p>The simplest controller, and the best one to understand first because
+every other controller reuses its exact skeleton (imports, parameter
+pattern, mission gate, tick loop). Full docstring, unmodified:</p>
+
+<pre><code><span class="c">"""
+accel_driver -- autonomy node for the eufs_sim2 ACCELERATION mission.
+
+The sim's VCU hands control over once ASState reaches DRIVING, but nothing
+publishes /cmd by default -- so the car just sits there. This node fills that
+gap: drive straight under closed-loop speed control, brake to a stop past the
+finish line.
+
+The sim consumes ONLY drive.acceleration and drive.steering_angle from /cmd
+(eufs_sim2/src/control.cpp); drive.speed is ignored entirely. Speed is
+therefore regulated here: a P controller on the odometry speed error outputs
+an acceleration command. The vehicle model applies negative acceleration as
+braking and clamps it to zero once the car has stopped, so holding a brake
+command cannot reverse the car.
+"""</span></code></pre>
+
+<p>Two sentences carry the whole design rationale. <strong>"The sim consumes
+ONLY drive.acceleration and drive.steering_angle"</strong> is upstream bug #1
+(Part VIII has the exact 11-line C++ file that proves it) — it's why speed
+control has to happen <em>here</em>, in our node, instead of just telling the
+sim "go 8 m/s." <strong>"the vehicle model... clamps it to zero once the car
+has stopped"</strong> is the fact that makes holding a brake command safe —
+we rely on it instead of writing our own zero-crossing logic.</p>
+
+<h3>Imports and parameters</h3>
+<pre><code><span class="k">import</span> math
+
+<span class="k">import</span> rclpy
+<span class="k">from</span> rclpy.node <span class="k">import</span> Node
+<span class="k">from</span> std_msgs.msg <span class="k">import</span> String
+<span class="k">from</span> nav_msgs.msg <span class="k">import</span> Odometry
+<span class="k">from</span> ackermann_msgs.msg <span class="k">import</span> AckermannDriveStamped
+
+
+<span class="k">class</span> AccelDriver(Node):
+    <span class="k">def</span> __init__(<span class="k">self</span>):
+        <span class="f">super</span>().__init__(<span class="s">"accel_driver"</span>)   <span class="c"># node's name on the ROS graph</span>
+
+        <span class="k">self</span>.declare_parameter(<span class="s">"odom_topic"</span>, <span class="s">"/odom"</span>)
+        <span class="k">self</span>.declare_parameter(<span class="s">"mission"</span>, <span class="s">"ACCELERATION"</span>)
+        <span class="k">self</span>.declare_parameter(<span class="s">"target_speed"</span>, <span class="n">8.0</span>)
+        <span class="k">self</span>.declare_parameter(<span class="s">"finish_distance"</span>, <span class="n">75.0</span>)
+        <span class="k">self</span>.declare_parameter(<span class="s">"accel_limit"</span>, <span class="n">3.0</span>)
+        <span class="k">self</span>.declare_parameter(<span class="s">"brake_limit"</span>, <span class="n">4.0</span>)
+        <span class="k">self</span>.declare_parameter(<span class="s">"kp"</span>, <span class="n">1.5</span>)
+        <span class="k">self</span>.declare_parameter(<span class="s">"stop_speed"</span>, <span class="n">0.1</span>)
+        <span class="k">self</span>.declare_parameter(<span class="s">"brake_hold"</span>, <span class="n">1.0</span>)
+        <span class="k">self</span>.declare_parameter(<span class="s">"publish_rate"</span>, <span class="n">50.0</span>)</code></pre>
+
+<p>Every parameter here is a <em>knob</em>, not a magic number — that's
+deliberate: <code>config/accel_params.yaml</code> sets these at launch, so
+tuning never touches this file. <code>odom_topic</code> defaults to
+<code>/odom</code> (ground truth) but is what flips to
+<code>/odometry/filtered</code> for the EKF experiment (Part IX, §11 of the
+field guide). <code>finish_distance: 75.0</code> is straight from the FS
+rulebook's Acceleration event distance.</p>
+
+<h3>State variables</h3>
+<pre><code><span class="k">self</span>.driving = <span class="k">False</span>      <span class="c"># is ASState == DRIVING right now?</span>
+<span class="k">self</span>.start_xy = <span class="k">None</span>      <span class="c"># pose captured the instant DRIVING began</span>
+<span class="k">self</span>.position = <span class="k">None</span>      <span class="c"># latest odom position</span>
+<span class="k">self</span>.speed = <span class="n">0.0</span>          <span class="c"># latest odom forward speed</span>
+<span class="k">self</span>.distance = <span class="n">0.0</span>       <span class="c"># metres travelled since start_xy</span>
+<span class="k">self</span>.braking = <span class="k">False</span>       <span class="c"># latched once finish_distance is crossed</span>
+<span class="k">self</span>.stopped = <span class="k">False</span></code></pre>
+
+<p>Notice <code>self.braking</code> is a <strong>latch</strong>, not a
+recomputed condition: once the car crosses 75 m it stays in "braking" mode
+even if <code>self.distance</code> later reads something odd (e.g. under
+odometry drift). That's a deliberate one-way state machine, not an oversight
+— you don't want a noisy distance reading to un-brake a car mid-stop.</p>
+
+<h3>Wiring — the three lines that touch the sim</h3>
+<pre><code><span class="k">self</span>.pub = <span class="k">self</span>.create_publisher(AckermannDriveStamped, <span class="s">"/cmd"</span>, <span class="n">10</span>)
+<span class="k">self</span>.create_subscription(String, <span class="s">"/sim/ros_can/state_str"</span>, <span class="k">self</span>.on_state, <span class="n">10</span>)
+<span class="k">self</span>.create_subscription(
+    Odometry, <span class="k">self</span>.get_parameter(<span class="s">"odom_topic"</span>).value, <span class="k">self</span>.on_odom, <span class="n">10</span>)
+<span class="k">self</span>.create_timer(<span class="n">1.0</span> / rate, <span class="k">self</span>.tick)</code></pre>
+
+<p>This is the entire coupling to <code>eufs_sim2</code> — one publisher, two
+subscriptions. The <code>10</code> is the ROS <em>queue depth</em> (how many
+unread messages to buffer per subscriber before dropping old ones); at 50 Hz
+control loops this is generous headroom.</p>
+
+<h3>The mission gate — <code>on_state</code></h3>
+<pre><code><span class="k">def</span> on_state(<span class="k">self</span>, msg):
+    <span class="c"># engage only when OUR mission is selected AND the VCU has released</span>
+    <span class="c"># control -- this is what links the Foxglove mission dropdown to this</span>
+    <span class="c"># node; other mission controllers can run alongside and stay idle</span>
+    mine = (<span class="s">"AMIState: %s"</span> % <span class="k">self</span>.mission) <span class="k">in</span> msg.data
+    driving = mine <span class="k">and</span> <span class="s">"ASState: DRIVING"</span> <span class="k">in</span> msg.data
+
+    <span class="k">if</span> driving <span class="k">and</span> <span class="k">not</span> <span class="k">self</span>.driving:
+        <span class="c"># just entered DRIVING -- latch the start pose and reset the run</span>
+        <span class="k">self</span>.start_xy = <span class="k">self</span>.position
+        <span class="k">self</span>.distance = <span class="n">0.0</span>
+        <span class="k">self</span>.braking = <span class="k">False</span>
+        <span class="k">self</span>.stopped = <span class="k">False</span>
+    <span class="k">elif</span> <span class="k">not</span> driving <span class="k">and</span> <span class="k">self</span>.driving:
+        <span class="k">self</span>.get_logger().info(<span class="s">"Left DRIVING -- stopping."</span>)
+
+    <span class="k">self</span>.driving = driving</code></pre>
+
+<p><code>msg.data</code> is a plain string like <code>"AMIState: ACCELERATION
+ASState: DRIVING"</code> — the sim's state machine publishes its whole state
+as text, and we do a substring check rather than parsing an enum. Crude, but
+it means we never need the sim's C++ headers to read its state. Note the
+<strong>edge detection</strong>: <code>driving and not self.driving</code>
+only fires <em>once</em>, on the transition into DRIVING — that's where the
+run resets. Every following tick just sees <code>driving == True</code> and
+does nothing special here.</p>
+
+<h3>The control loop — <code>tick()</code></h3>
+<pre><code><span class="k">def</span> tick(<span class="k">self</span>):
+    <span class="k">if</span> <span class="k">not</span> <span class="k">self</span>.driving:
+        <span class="k">return</span>                              <span class="c"># <-- the whole "obey the RES" contract</span>
+
+    <span class="k">if</span> <span class="k">not</span> <span class="k">self</span>.braking <span class="k">and</span> <span class="k">self</span>.distance &gt;= <span class="k">self</span>.finish_distance:
+        <span class="k">self</span>.braking = <span class="k">True</span>
+
+    target = <span class="n">0.0</span> <span class="k">if</span> <span class="k">self</span>.braking <span class="k">else</span> <span class="k">self</span>.target_speed
+    accel = <span class="k">self</span>.kp * (target - <span class="k">self</span>.speed)                 <span class="c"># P-control</span>
+    accel = <span class="f">max</span>(-<span class="k">self</span>.brake_limit, <span class="f">min</span>(<span class="k">self</span>.accel_limit, accel))
+
+    <span class="k">if</span> <span class="k">self</span>.braking <span class="k">and</span> <span class="f">abs</span>(<span class="k">self</span>.speed) &lt; <span class="k">self</span>.stop_speed:
+        accel = -<span class="k">self</span>.brake_hold           <span class="c"># hold rather than coast to zero</span>
+
+    cmd = AckermannDriveStamped()
+    cmd.drive.acceleration = <span class="f">float</span>(accel)
+    cmd.drive.steering_angle = <span class="n">0.0</span>          <span class="c"># straight-line event</span>
+    <span class="k">self</span>.pub.publish(cmd)</code></pre>
+
+<p>Read this as one sentence: <em>"every 20 ms, if driving, compute the speed
+error, scale it by k<sub>p</sub>, clamp it to what the car can physically do,
+and send it."</em> Braking is not a separate code path — it's the same line
+(<code>accel = kp * (target - speed)</code>) with <code>target</code> switched
+to zero. That's the whole insight: cruise control and emergency braking are
+the same feedback loop pointed at different setpoints.</p>
+
+<div class="say"><b>30-second summary to say out loud</b>
+"accel_driver holds 8 m/s with a proportional controller on speed error, and
+brakes with the exact same formula once it's travelled 75 m — the target
+speed just switches to zero. It only ever acts while the state machine says
+DRIVING, so an emergency stop is obeyed automatically. Verified: holds 8 m/s,
+stops about 9 m past the 75 m line, matching the v²/2a physics prediction."</div>
+
+<details class="quiz"><summary>Why is finish_distance a latch (self.braking) instead of a live comparison?</summary>
+<div class="body">Because odometry can be noisy or drift (§10/§11 of the field
+guide). If braking were re-evaluated every tick from raw distance, a noisy
+reading dipping back under 75 m could theoretically un-brake the car
+mid-stop. Latching makes "crossed the line" a one-way, permanent fact for
+the rest of the run — the correct semantics for a competition rule.</div></details>
+
+</div>
+</details>
+
+<!-- ============================================================ -->
+<h2 id="skidpad_driver"><span class="part-label">Part II</span><span class="no">·</span>skidpad_driver.py</h2>
+
+<details class="filecard">
+<summary>
+  <span class="path">fs_autonomy/skidpad_driver.py</span>
+  <span class="loc">259 lines</span>
+  <span class="side ours">ours</span>
+  <span class="purpose">SKIDPAD mission: odometry-based figure-8, pure pursuit</span>
+</summary>
+<div class="inner">
+
+<p>Same skeleton as <code>accel_driver.py</code> — same imports, same
+parameter-declare pattern, same <code>on_state</code> mission gate (not
+re-shown; it's byte-for-byte the same idea with <code>self.mission ==
+"SKIDPAD"</code>). What's new here is <strong>geometry</strong>: this
+controller has to know the shape of a figure-8 and where it is on the car,
+using only odometry.</p>
+
+<h3>Frame math — the trick that makes everything else simple</h3>
+<pre><code><span class="k">def</span> yaw_from_quaternion(q):
+    <span class="k">return</span> math.atan2(
+        <span class="n">2.0</span> * (q.w * q.z + q.x * q.y), <span class="n">1.0</span> - <span class="n">2.0</span> * (q.y * q.y + q.z * q.z)
+    )
+
+<span class="k">def</span> rel_pose(<span class="k">self</span>):
+    <span class="c">"""Current pose in the start frame (origin at start, x along initial heading)."""</span>
+    x0, y0, yaw0 = <span class="k">self</span>.start_pose
+    x, y, yaw = <span class="k">self</span>.pose
+    dx, dy = x - x0, y - y0
+    c, s = math.cos(-yaw0), math.sin(-yaw0)
+    <span class="k">return</span> (c * dx - s * dy, s * dx + c * dy, wrap(yaw - yaw0))</code></pre>
+
+<p><code>yaw_from_quaternion</code> converts ROS's quaternion orientation
+(4 numbers, avoids gimbal lock) into a single heading angle — we only ever
+need 2D heading, so this one line is the entire "quaternion math" the project
+needs. <code>rel_pose</code> re-expresses the car's absolute map position into
+a <strong>coordinate frame anchored at the start of the run</strong>, with x
+pointing along the car's initial heading. That's a standard 2D rotation
+(the <code>c, s</code> pair is <code>cos/sin</code> of the negative start
+heading). <strong>Why bother:</strong> the FS skidpad geometry (circle
+centers at ±9.25 m, crossing 9.8 m ahead) is defined <em>relative to where
+the car starts</em>, not in absolute map coordinates — so working in this
+frame means the geometry constants are just the numbers from the rulebook,
+with no dependence on where the car happened to spawn.</p>
+
+<h3>The phase state machine</h3>
+<pre><code>ENTRY, RIGHT, LEFT, EXIT, BRAKE = <span class="s">"ENTRY"</span>, <span class="s">"RIGHT"</span>, <span class="s">"LEFT"</span>, <span class="s">"EXIT"</span>, <span class="s">"BRAKE"</span>
+
+<span class="k">def</span> advance_phase(<span class="k">self</span>, rx, ry):
+    xc = <span class="k">self</span>.entry_distance                 <span class="c"># crossing point is at (xc, 0)</span>
+
+    <span class="k">if</span> <span class="k">self</span>.phase == ENTRY <span class="k">and</span> rx &gt;= xc:
+        <span class="k">self</span>.phase = RIGHT
+        <span class="k">self</span>.turn_angle = <span class="n">0.0</span>
+
+    <span class="k">elif</span> <span class="k">self</span>.phase <span class="k">in</span> (RIGHT, LEFT):
+        cy = -<span class="k">self</span>.radius <span class="k">if</span> <span class="k">self</span>.phase == RIGHT <span class="k">else</span> <span class="k">self</span>.radius
+        phi = math.atan2(ry - cy, rx - xc)     <span class="c"># angle around the circle center</span>
+        <span class="k">if</span> <span class="k">self</span>.prev_phi <span class="k">is</span> <span class="k">not</span> <span class="k">None</span>:
+            <span class="k">self</span>.turn_angle += wrap(phi - <span class="k">self</span>.prev_phi)   <span class="c"># accumulate signed angle</span>
+        <span class="k">self</span>.prev_phi = phi
+
+        full = <span class="k">self</span>.laps * <span class="n">2.0</span> * math.pi - <span class="n">0.05</span>
+        <span class="k">if</span> <span class="k">self</span>.phase == RIGHT <span class="k">and</span> <span class="k">self</span>.turn_angle &lt;= -full:
+            <span class="k">self</span>.phase = LEFT
+        <span class="k">elif</span> <span class="k">self</span>.phase == LEFT <span class="k">and</span> <span class="k">self</span>.turn_angle &gt;= full:
+            <span class="k">self</span>.phase = EXIT
+
+    <span class="k">elif</span> <span class="k">self</span>.phase == EXIT <span class="k">and</span> rx &gt;= xc + <span class="k">self</span>.exit_distance:
+        <span class="k">self</span>.phase = BRAKE</code></pre>
+
+<p>The clever bit is <strong>lap counting by angle, not by crossing a line</strong>.
+Each tick, the code measures the car's bearing <code>phi</code> around
+whichever circle's center it's currently orbiting, and accumulates the
+<em>change</em> in that bearing (<code>wrap()</code> keeps the difference in
+<code>(-π, π]</code> so a wraparound from +π to −π doesn't register as a
+huge jump). Two full laps clockwise is exactly <code>−4π</code> radians;
+that's the <code>full</code> threshold. This is more robust than "did we
+cross a specific point" because it doesn't care about the car's radial
+error — it just keeps summing rotation until enough of it has happened.</p>
+
+<h3>Where the target point comes from</h3>
+<pre><code><span class="k">def</span> target_point(<span class="k">self</span>, rx, ry):
+    xc = <span class="k">self</span>.entry_distance
+    <span class="k">if</span> <span class="k">self</span>.phase <span class="k">in</span> (ENTRY, EXIT, BRAKE):
+        <span class="k">return</span> (rx + <span class="k">self</span>.lookahead, <span class="n">0.0</span>)     <span class="c"># ahead on the centerline y=0</span>
+
+    cy = -<span class="k">self</span>.radius <span class="k">if</span> <span class="k">self</span>.phase == RIGHT <span class="k">else</span> <span class="k">self</span>.radius
+    phi = math.atan2(ry - cy, rx - xc)
+    dphi = <span class="k">self</span>.lookahead / <span class="k">self</span>.radius        <span class="c"># arc length -> angle, at this radius</span>
+    phi_t = phi - dphi <span class="k">if</span> <span class="k">self</span>.phase == RIGHT <span class="k">else</span> phi + dphi
+    <span class="k">return</span> (xc + <span class="k">self</span>.radius * math.cos(phi_t), cy + <span class="k">self</span>.radius * math.sin(phi_t))</code></pre>
+
+<p>On the circles, the pure-pursuit target isn't just "a fixed point ahead" —
+it's a point <em>on the ideal circle</em>, a fixed <em>arc length</em>
+(<code>lookahead</code> metres) further around. Converting arc length to an
+angle at a known radius is just <code>angle = arc / radius</code> — that's
+<code>dphi</code>. The sign flip (<code>phi - dphi</code> vs <code>phi +
+dphi</code>) is what makes the right circle get driven clockwise and the left
+counter-clockwise.</p>
+
+<h3>tick() — steering and speed, same pure-pursuit formula as trackdrive</h3>
+<pre><code>tx, ty = <span class="k">self</span>.target_point(rx, ry)
+<span class="c"># rotate the target from the start frame into the CAR's current body frame</span>
+dxb = math.cos(-ryaw) * (tx - rx) - math.sin(-ryaw) * (ty - ry)
+dyb = math.sin(-ryaw) * (tx - rx) + math.cos(-ryaw) * (ty - ry)
+alpha = math.atan2(dyb, dxb)
+ld = math.hypot(dxb, dyb)
+steer = math.atan2(<span class="n">2.0</span> * <span class="k">self</span>.wheelbase * math.sin(alpha), ld)</code></pre>
+
+<p>This is the pure-pursuit steering law explained in the field guide §5 —
+identical formula to trackdrive's. The only difference between the two
+controllers is <em>where the target point comes from</em>: here it's computed
+from known geometry in the odometry frame; in trackdrive it comes from
+whatever cones are currently visible.</p>
+
+<div class="say"><b>30-second summary to say out loud</b>
+"Skidpad drives a fixed figure-8 whose shape comes from the rulebook, tracked
+entirely from odometry — no cones involved. We work in a frame anchored at
+the start pose so the geometry constants are just the numbers from the rules.
+Lap counting sums signed rotation angle rather than checking crossings, which
+is more robust to path error. Because this controller trusts odometry for
+geometry rather than perception, it's the one most exposed to state-estimation
+drift — which is exactly what the EKF experiment measured."</div>
+
+<details class="quiz"><summary>Why sum rotation angle instead of just checking "am I back near the entry point"?</summary>
+<div class="body">A distance-to-start check can't tell two laps from zero
+laps — both put the car back near the same point. Angle accumulation
+directly counts <em>how much circle</em> has been driven, which is what
+"two laps" actually means.</div></details>
+
+</div>
+</details>
+
+<!-- ============================================================ -->
+<h2 id="trackdrive_driver"><span class="part-label">Part II</span><span class="no">·</span>trackdrive_driver.py</h2>
+
+<details class="filecard">
+<summary>
+  <span class="path">fs_autonomy/trackdrive_driver.py</span>
+  <span class="loc">297 lines</span>
+  <span class="side ours">ours</span>
+  <span class="purpose">TRACK_DRIVE + AUTOCROSS: steering from cone perception</span>
+</summary>
+<div class="inner">
+
+<p>The first controller that never looks at a map — it steers from
+<strong>car-relative cone detections</strong>. Same skeleton again (imports,
+parameters, mission gate); what's new is a third subscription and the
+target-selection logic.</p>
+
+<h3>Classifying a cone</h3>
+<pre><code><span class="k">def</span> classify(cone):
+    <span class="c">"""Highest-probability colour label for a cone."""</span>
+    probs = {
+        <span class="s">"blue"</span>: cone.blue_prob,
+        <span class="s">"yellow"</span>: cone.yellow_prob,
+        <span class="s">"orange"</span>: cone.orange_prob,
+        <span class="s">"big_orange"</span>: cone.big_orange_prob,
+        <span class="s">"unknown"</span>: cone.unknown_prob,
+    }
+    <span class="k">return</span> <span class="f">max</span>(probs, key=probs.get)</code></pre>
+
+<p>Each cone message doesn't carry a single "color" field — it carries five
+<em>probabilities</em> (this is exactly what a real perception model would
+output too: confidence per class). <code>classify()</code> just takes the
+most likely one. This is the seam where a real YOLO detector would plug in —
+its output has the same shape.</p>
+
+<h3>Picking a steering target from a cone list</h3>
+<pre><code><span class="k">def</span> pick_target(<span class="k">self</span>):
+    left, right = [], []
+    <span class="k">for</span> cone <span class="k">in</span> <span class="k">self</span>.cones_msg.cones:
+        x, y = cone.point.x, cone.point.y
+        r = math.hypot(x, y)
+        <span class="k">if</span> x &lt; <span class="n">0.2</span> <span class="k">or</span> r &gt; <span class="k">self</span>.max_cone_range:
+            <span class="k">continue</span>                          <span class="c"># behind us or too far to trust</span>
+        label = classify(cone)
+        <span class="k">if</span> label == <span class="s">"blue"</span>:   left.append((r, x, y))
+        <span class="k">elif</span> label == <span class="s">"yellow"</span>: right.append((r, x, y))
+        <span class="k">elif</span> label <span class="k">in</span> (<span class="s">"orange"</span>, <span class="s">"big_orange"</span>):
+            (left <span class="k">if</span> y &gt; <span class="n">0.0</span> <span class="k">else</span> right).append((r, x, y))
+
+    left.sort(); right.sort()          <span class="c"># nearest first (tuples sort by r)</span>
+
+    <span class="k">if</span> left <span class="k">and</span> right:
+        candidates = []
+        <span class="k">for</span> (_, bx, by), (_, yx, yy) <span class="k">in</span> <span class="f">zip</span>(left[:<span class="n">3</span>], right[:<span class="n">3</span>]):
+            mx, my = (bx + yx) / <span class="n">2.0</span>, (by + yy) / <span class="n">2.0</span>
+            candidates.append((math.hypot(mx, my), mx, my))
+        <span class="k">for</span> dist, mx, my <span class="k">in</span> candidates:
+            <span class="k">if</span> dist &gt;= <span class="k">self</span>.min_target_dist:
+                <span class="k">return</span> (mx, my)
+        <span class="k">return</span> (candidates[-<span class="n">1</span>][<span class="n">1</span>], candidates[-<span class="n">1</span>][<span class="n">2</span>])
+
+    <span class="k">if</span> left:
+        _, cx, cy = left[<span class="n">0</span>]
+        <span class="k">return</span> (cx, cy - <span class="k">self</span>.half_track)      <span class="c"># blue = left edge: aim right of it</span>
+    <span class="k">if</span> right:
+        _, cx, cy = right[<span class="n">0</span>]
+        <span class="k">return</span> (cx, cy + <span class="k">self</span>.half_track)      <span class="c"># yellow = right edge: aim left of it</span>
+    <span class="k">return</span> <span class="k">None</span>                                    <span class="c"># nothing usable -- blind</span></code></pre>
+
+<p>Walk this in three cases, worst to best:</p>
+<ul>
+<li><strong>Nothing visible</strong> (both lists empty) → returns <code>None</code>
+→ the caller treats this as "blind."</li>
+<li><strong>One side visible</strong> — steer toward a point offset half a
+track width (1.75 m) from the visible cone, on the correct side. This is a
+sane fallback, not a failure: if you can see the left edge, you can infer
+roughly where the right edge must be.</li>
+<li><strong>Both sides visible</strong> — take up to 3 nearest pairs, compute
+each pair's midpoint, and pick the <em>first one far enough ahead</em>
+(<code>min_target_dist</code>) — this avoids picking a target so close it
+produces a jerky, oversized steering angle.</li>
+</ul>
+
+<h3>The bug we found here — and its fix</h3>
+<pre><code><span class="k">def</span> tick(<span class="k">self</span>):
+    ...
+    <span class="k">if</span> target <span class="k">is</span> <span class="k">not</span> <span class="k">None</span>:
+        ...
+        <span class="k">self</span>.last_target_time = <span class="k">self</span>.get_clock().now()   <span class="c"># <-- updated only on success</span>
+        blind = <span class="k">False</span>
+    <span class="k">else</span>:
+        steer = <span class="k">self</span>.last_steer
+        blind = <span class="k">True</span>
+
+    ...
+    <span class="c"># blindness is measured from the last USABLE TARGET, not the last</span>
+    <span class="c"># message -- a live perception stack seeing nothing still publishes</span>
+    <span class="c"># empty arrays at frame rate, which must not defer the blind stop</span>
+    t_age = (<span class="f">float</span>(<span class="s">"inf"</span>) <span class="k">if</span> <span class="k">self</span>.last_target_time <span class="k">is</span> <span class="k">None</span> <span class="k">else</span>
+             (<span class="k">self</span>.get_clock().now() - <span class="k">self</span>.last_target_time).nanoseconds * <span class="n">1e-9</span>)
+    <span class="k">if</span> <span class="k">self</span>.finished <span class="k">or</span> (blind <span class="k">and</span> t_age &gt; <span class="k">self</span>.blind_stop_time):
+        v_target = <span class="n">0.0</span></code></pre>
+
+<div class="bugbox"><b>Bug found by the Monte-Carlo sweep, not by inspection</b>
+The original code timed "how long has it been blind" from the last time <em>a
+cone message arrived at all</em> — but an empty detection array is still a
+message. A perception source that sees nothing keeps publishing empty arrays
+at full frame rate, so that timer kept getting reset and never elapsed: the
+car crept forward at minimum speed <strong>forever</strong>, 335 m off the
+track before we noticed, in the first zero-detection sweep. The fix: track
+the time of the last <em>usable target</em>, not the last message. A blind
+car now genuinely stops.</div>
+
+<div class="say"><b>30-second summary to say out loud</b>
+"Trackdrive never uses odometry for steering — only for lap counting. It
+classifies visible cones by color probability, pairs the nearest blue and
+yellow, and pure-pursuits toward the midpoint, falling back to a half-track
+offset if only one side is visible. Verified: 3 out of 3 laps, 10 cm max
+deviation, zero cones hit. And this controller directly caught a real bug in
+our own code — a blind car that should have stopped kept creeping — found by
+the very Monte-Carlo sweep this platform exists to run."</div>
+
+<details class="quiz"><summary>Why classify cones from probabilities instead of a single label field?</summary>
+<div class="body">Because that's what a real detector outputs — confidence
+per class, not a certainty. Consuming the same shape of data the sim
+produces means a real YOLO model's output (also probabilities per class) can
+replace the sim's cones with zero code change downstream — see field guide
+§9, Path 2.</div></details>
+
+</div>
+</details>
+
+<!-- ============================================================ -->
+<h2 id="wheel_odometry"><span class="part-label">Part III · State estimation</span><span class="no">·</span>wheel_odometry.py</h2>
+
+<details class="filecard">
+<summary>
+  <span class="path">fs_autonomy/wheel_odometry.py</span>
+  <span class="loc">85 lines</span>
+  <span class="side ours">ours</span>
+  <span class="purpose">wheel speeds → covariance-stamped twist, for the EKF</span>
+</summary>
+<div class="inner">
+
+<p>The EKF (<code>robot_localization</code>, an off-the-shelf package) expects
+a standard ROS message shape for velocity input:
+<code>TwistWithCovarianceStamped</code>. The sim's wheel-speed message is its
+own custom type (<code>eufs_msgs/WheelSpeedsStamped</code>), so this node's
+whole job is <strong>translation</strong>.</p>
+
+<pre><code><span class="k">def</span> __init__(<span class="k">self</span>):
+    <span class="f">super</span>().__init__(<span class="s">"wheel_odometry"</span>)
+    <span class="k">self</span>.declare_parameter(<span class="s">"wheel_radius"</span>, <span class="n">0.2525</span>)  <span class="c"># m (ads-dv config)</span>
+    <span class="k">self</span>.declare_parameter(<span class="s">"speed_unit"</span>, <span class="s">"rps"</span>)     <span class="c"># "rps" (eufs_sim2) | "rpm" (real car)</span>
+    <span class="k">self</span>.declare_parameter(<span class="s">"vx_stddev"</span>, <span class="n">0.05</span>)       <span class="c"># m/s, trust in wheel-derived vx</span>
+    <span class="k">self</span>.declare_parameter(<span class="s">"vy_stddev"</span>, <span class="n">0.1</span>)        <span class="c"># m/s, nonholonomic slack</span>
+
+    radius = <span class="k">self</span>.get_parameter(<span class="s">"wheel_radius"</span>).value
+    unit = <span class="k">self</span>.get_parameter(<span class="s">"speed_unit"</span>).value
+    <span class="k">self</span>.circumference = <span class="n">2.0</span> * math.pi * radius
+    <span class="k">self</span>.per_rev = <span class="k">self</span>.circumference / (<span class="n">60.0</span> <span class="k">if</span> unit == <span class="s">"rpm"</span> <span class="k">else</span> <span class="n">1.0</span>)</code></pre>
+
+<div class="bugbox"><b>Upstream quirk this parameter works around</b>
+The sim's message field documents wheel speed as "RPM", but the actual
+physics code (<code>eufs_core.cpp</code>) computes <code>v_x /
+tyre_circumference</code> with no ×60 — that's revolutions <em>per second</em>,
+not per minute. <code>speed_unit</code> defaults to <code>"rps"</code> for
+the sim; the same node runs unmodified against a real car's CAN bus by
+switching it to <code>"rpm"</code>.</div>
+
+<pre><code><span class="k">def</span> on_wheel_speeds(<span class="k">self</span>, msg):
+    rear_mean = <span class="n">0.5</span> * (msg.speeds.lb_speed + msg.speeds.rb_speed)
+
+    out = TwistWithCovarianceStamped()
+    out.header.stamp = msg.header.stamp     <span class="c"># preserve source (sim) time</span>
+    out.twist.twist.linear.x = rear_mean * <span class="k">self</span>.per_rev
+    out.twist.twist.linear.y = <span class="n">0.0</span>
+    out.twist.covariance = <span class="k">self</span>.cov
+    <span class="k">self</span>.pub.publish(out)</code></pre>
+
+<p>Why the <strong>rear</strong> wheels, not front: the front wheels are
+steered, so their speed differs from the car's own forward speed by
+<code>1/cos(steering)</code> — an extra correction we'd rather not need. The
+rear wheels are undriven by steering geometry, so their mean speed <em>is</em>
+the car's forward speed directly. <code>linear.y = 0.0</code> encodes the
+<strong>nonholonomic assumption</strong> — a car doesn't slide sideways — as
+a measurement, with <code>vy_stddev</code> giving the EKF a little slack
+rather than treating it as an exact zero.</p>
+
+<div class="say"><b>30-second summary to say out loud</b>
+"This node exists purely to speak the EKF's language: it takes the sim's
+custom wheel-speed message, corrects for the RPM-vs-rev/s mismatch we found,
+and republishes a standard velocity-with-uncertainty message from the mean
+rear-wheel speed."</div>
+
+</div>
+</details>
+
+<!-- ============================================================ -->
+<h2 id="imu_frontend"><span class="part-label">Part III</span><span class="no">·</span>imu_frontend.py</h2>
+
+<details class="filecard">
+<summary>
+  <span class="path">fs_autonomy/imu_frontend.py</span>
+  <span class="loc">66 lines</span>
+  <span class="side ours">ours</span>
+  <span class="purpose">fills in IMU covariance the sim leaves at zero</span>
+</summary>
+<div class="inner">
+
+<pre><code><span class="k">def</span> on_imu(<span class="k">self</span>, msg):
+    msg.angular_velocity_covariance = <span class="k">self</span>.gyro_cov
+    msg.linear_acceleration_covariance = <span class="k">self</span>.accel_cov
+    msg.orientation_covariance = <span class="k">self</span>.orient_cov
+    <span class="k">self</span>.pub.publish(msg)</code></pre>
+
+<p>This is the whole node's logic, in four lines. The reason it needs to
+exist at all: an EKF weighs each sensor by how much it's told to
+<em>trust</em> it — that trust is carried as a covariance number inside the
+message itself, not in the filter's own config. The sim's IMU plugin
+generates realistic noisy <em>values</em> (Part VIII has the exact injection
+code) but never fills the covariance <em>fields</em> — they arrive as zero. A
+covariance of zero is a mathematical claim of "this reading is perfect,"
+which would make the filter blindly over-trust the IMU over everything else.
+This node stamps the actual configured uncertainty onto the stream before it
+reaches the filter.</p>
+
+<pre><code><span class="k">self</span>.orient_cov = [<span class="n">0.0</span>] * <span class="n">9</span>
+<span class="k">for</span> i <span class="k">in</span> (<span class="n">0</span>, <span class="n">4</span>, <span class="n">8</span>):
+    <span class="k">self</span>.orient_cov[i] = <span class="n">1000.0</span>   <span class="c"># deliberately huge: "don't trust this"</span></code></pre>
+
+<p>One more deliberate choice: orientation covariance is set <em>enormous</em>
+rather than accurate. Our EKF config (Part VI) doesn't fuse orientation at
+all — this is belt-and-braces, making sure that if anything downstream ever
+did look at it, the huge number screams "ignore me" rather than silently
+looking trustworthy.</p>
+
+<div class="say"><b>30-second summary to say out loud</b>
+"Four lines, but they matter: an EKF trusts a sensor exactly as much as its
+message says to, and the simulator was shipping zero — meaning 'perfect
+sensor' — for every IMU reading. This node fills in the real, configured
+uncertainty before the filter ever sees the data."</div>
+
+</div>
+</details>
+
+<!-- ============================================================ -->
+<h2 id="odom_corruptor"><span class="part-label">Part IV · SIL harnesses</span><span class="no">·</span>odom_corruptor.py</h2>
+
+<details class="filecard">
+<summary>
+  <span class="path">fs_autonomy/odom_corruptor.py</span>
+  <span class="loc">56 lines</span>
+  <span class="side ours">ours</span>
+  <span class="purpose">shared odometry error model, used by all 3 SIL harnesses</span>
+</summary>
+<div class="inner">
+
+<p>Not a node — a plain importable class. Its whole purpose: let a harness
+compute metrics against the <strong>true</strong> state while
+<strong>publishing</strong> a corrupted one, so a controller can be tested
+against realistic dead-reckoning error without needing a real EKF running.</p>
+
+<pre><code><span class="k">class</span> OdomCorruptor:
+    PARAMS = (
+        (<span class="s">"odom_pos_noise"</span>, <span class="n">0.0</span>),              <span class="c"># m, white</span>
+        (<span class="s">"odom_yaw_noise_deg"</span>, <span class="n">0.0</span>),          <span class="c"># deg, white</span>
+        (<span class="s">"odom_vel_noise"</span>, <span class="n">0.0</span>),              <span class="c"># m/s, white</span>
+        (<span class="s">"odom_drift_m_per_sqrt_min"</span>, <span class="n">0.0</span>),   <span class="c"># random-walk position drift</span>
+        (<span class="s">"odom_yaw_drift_deg_per_sqrt_min"</span>, <span class="n">0.0</span>),
+    )
+
+    <span class="k">def</span> __init__(<span class="k">self</span>, node, rng, dt):
+        gp = <span class="k">lambda</span> k: node.get_parameter(k).value
+        <span class="k">self</span>.rng = rng
+        <span class="k">self</span>.pos_noise = gp(<span class="s">"odom_pos_noise"</span>)
+        <span class="k">self</span>.yaw_noise = math.radians(gp(<span class="s">"odom_yaw_noise_deg"</span>))
+        <span class="k">self</span>.vel_noise = gp(<span class="s">"odom_vel_noise"</span>)
+        <span class="c"># random-walk step size scales with sqrt(dt) -- standard Brownian-motion math</span>
+        <span class="k">self</span>.drift_q = gp(<span class="s">"odom_drift_m_per_sqrt_min"</span>) * math.sqrt(dt / <span class="n">60.0</span>)
+        <span class="k">self</span>.yaw_drift_q = math.radians(
+            gp(<span class="s">"odom_yaw_drift_deg_per_sqrt_min"</span>)) * math.sqrt(dt / <span class="n">60.0</span>)
+        <span class="k">self</span>.drift_x = <span class="n">0.0</span>; <span class="k">self</span>.drift_y = <span class="n">0.0</span>; <span class="k">self</span>.drift_yaw = <span class="n">0.0</span></code></pre>
+
+<p><strong>Why <code>sqrt(dt)</code>:</strong> this is the defining property
+of a random walk (Brownian motion) — if you take many small independent
+random steps, the total <em>distance wandered</em> after time t grows with
+<code>√t</code>, not t. A parameter given in "metres per √minute" is exactly
+calibrated so a longer sim step doesn't accidentally produce more or less
+total drift for the same wall-clock duration — it's the standard unit
+physicists use for exactly this kind of noise.</p>
+
+<pre><code><span class="k">def</span> corrupt(<span class="k">self</span>, x, y, yaw, v):
+    <span class="c">"""Advance drift one step; return the estimated (x, y, yaw, v)."""</span>
+    g = <span class="k">self</span>.rng.gauss
+    <span class="k">self</span>.drift_x += g(<span class="n">0.0</span>, <span class="k">self</span>.drift_q)       <span class="c"># accumulates -- this IS the random walk</span>
+    <span class="k">self</span>.drift_y += g(<span class="n">0.0</span>, <span class="k">self</span>.drift_q)
+    <span class="k">self</span>.drift_yaw += g(<span class="n">0.0</span>, <span class="k">self</span>.yaw_drift_q)
+    <span class="k">return</span> (x + <span class="k">self</span>.drift_x + g(<span class="n">0.0</span>, <span class="k">self</span>.pos_noise),
+            y + <span class="k">self</span>.drift_y + g(<span class="n">0.0</span>, <span class="k">self</span>.pos_noise),
+            yaw + <span class="k">self</span>.drift_yaw + g(<span class="n">0.0</span>, <span class="k">self</span>.yaw_noise),
+            v + g(<span class="n">0.0</span>, <span class="k">self</span>.vel_noise))</code></pre>
+
+<p>Two separate error sources, added together: <strong>white noise</strong>
+(a fresh random offset every call, doesn't accumulate — represents sensor
+jitter) and <strong>drift</strong> (added to a running total every call —
+represents integrated heading/position error that never resets, the
+signature failure mode of dead reckoning). <code>rng.gauss(0, σ)</code> draws
+one sample from a normal distribution with that standard deviation — calling
+it with <code>σ=0</code> (the parameter default) always returns exactly 0, so
+this class is a complete no-op unless a harness deliberately dials the knobs
+up.</p>
+
+<div class="say"><b>30-second summary to say out loud</b>
+"Every SIL harness scores itself against the true, uncorrupted physics state,
+but can publish a deliberately noisy version of it to the controller under
+test — white noise plus a random-walk drift, the standard model for how a
+real dead-reckoning estimator degrades over time. This one small class is
+shared by all three harnesses, so 'how much odometry error can this mission
+tolerate' is answered identically across accel, skidpad, and trackdrive."</div>
+
+<details class="quiz"><summary>Why use a separate RNG stream (seed+1) for odometry error instead of reusing the harness's main one?</summary>
+<div class="body">So sweeping the odometry knobs never resamples the same
+random numbers used for, say, the perception error model. Two independent
+streams mean you can attribute a change in outcome to the exact parameter
+you varied — otherwise changing one knob would silently perturb an unrelated
+one too, through shared randomness.</div></details>
+
+</div>
+</details>
+
+<!-- ============================================================ -->
+<h2 id="sil_accel"><span class="part-label">Part IV</span><span class="no">·</span>sil_accel.py</h2>
+
+<details class="filecard">
+<summary>
+  <span class="path">fs_autonomy/sil_accel.py</span>
+  <span class="loc">122 lines</span>
+  <span class="side ours">ours</span>
+  <span class="purpose">SIL harness for accel_driver — 1D point-mass physics</span>
+</summary>
+<div class="inner">
+
+<p>A SIL (software-in-the-loop) harness <strong>replaces the entire
+simulator</strong> for one controller with the smallest physics model that's
+still honest. This one models straight-line motion only — the acceleration
+event never turns.</p>
+
+<pre><code><span class="k">def</span> step(<span class="k">self</span>):
+    <span class="k">self</span>.t += DT
+    <span class="c"># same rule as the sim's kinematic model: no reversing under brake</span>
+    a = <span class="n">0.0</span> <span class="k">if</span> (<span class="k">self</span>.v &lt;= <span class="n">0.0</span> <span class="k">and</span> <span class="k">self</span>.a &lt; <span class="n">0.0</span>) <span class="k">else</span> <span class="k">self</span>.a
+    <span class="k">self</span>.v = <span class="f">max</span>(<span class="n">0.0</span>, <span class="k">self</span>.v + a * DT)
+    <span class="k">self</span>.x += <span class="k">self</span>.v * DT
+
+    <span class="k">self</span>.max_v = <span class="f">max</span>(<span class="k">self</span>.max_v, <span class="k">self</span>.v)
+    <span class="k">self</span>.min_a = <span class="f">min</span>(<span class="k">self</span>.min_a, <span class="k">self</span>.a)
+    <span class="k">if</span> <span class="k">self</span>.a &lt; -<span class="n">0.5</span> <span class="k">and</span> <span class="k">self</span>.brake_x <span class="k">is</span> <span class="k">None</span>:
+        <span class="k">self</span>.brake_x = <span class="k">self</span>.x
+    <span class="k">if</span> <span class="k">self</span>.brake_x <span class="k">is</span> <span class="k">not</span> <span class="k">None</span> <span class="k">and</span> <span class="k">self</span>.stop_x <span class="k">is</span> <span class="k">None</span> <span class="k">and</span> <span class="k">self</span>.v &lt; <span class="n">0.05</span>:
+        <span class="k">self</span>.stop_x = <span class="k">self</span>.x</code></pre>
+
+<p>Four lines of physics, straight Euler integration at <code>DT = 0.02</code>
+(50 Hz): velocity changes by acceleration×time, position changes by
+velocity×time. The <code>no-reversing-under-brake</code> rule mirrors the
+sim exactly — this is where we deliberately kept the SIL model's assumptions
+matched to the real simulator's, so a discrepancy later (§11 of the field
+guide) can be attributed to something specific rather than "the models just
+disagree in general."</p>
+
+<pre><code><span class="c"># metrics above use the TRUE state; publish the corrupted estimate</span>
+est_x, _, _, est_v = <span class="k">self</span>.odom.corrupt(<span class="k">self</span>.x, <span class="n">0.0</span>, <span class="n">0.0</span>, <span class="k">self</span>.v)
+
+odom = Odometry()
+odom.pose.pose.position.x = est_x
+odom.twist.twist.linear.x = est_v
+<span class="k">self</span>.odom_pub.publish(odom)</code></pre>
+
+<p>The "score truth, publish lies" pattern in its simplest form. All of the
+verdict variables (<code>max_v</code>, <code>brake_x</code>, <code>stop_x</code>)
+are computed from <code>self.x</code>/<code>self.v</code> directly, above —
+the corrupted <code>est_x</code>/<code>est_v</code> only ever go out over the
+wire to whatever controller is under test.</p>
+
+<div class="say"><b>30-second summary to say out loud</b>
+"sil_accel is 1D point-mass physics — the whole acceleration event is a
+straight line, so that's all this harness needs to model, plus the odometry
+corruption pattern shared with the other two harnesses."</div>
+
+</div>
+</details>
+
+<!-- ============================================================ -->
+<h2 id="sil_skidpad"><span class="part-label">Part IV</span><span class="no">·</span>sil_skidpad.py</h2>
+
+<details class="filecard">
+<summary>
+  <span class="path">fs_autonomy/sil_skidpad.py</span>
+  <span class="loc">154 lines</span>
+  <span class="side ours">ours</span>
+  <span class="purpose">SIL harness for skidpad_driver — kinematic bicycle</span>
+</summary>
+<div class="inner">
+
+<p>Skidpad turns, so the 1D model from <code>sil_accel</code> won't do. This
+harness steps the <strong>kinematic bicycle model</strong> — the standard
+minimal car model used across the whole project (also inside
+<code>sil_trackdrive</code>, byte-identical).</p>
+
+<pre><code>WHEELBASE = <span class="n">1.53</span>
+STEER_MAX = <span class="n">0.37</span>
+STEER_TAU = <span class="n">0.15</span>      <span class="c"># actuator lag [s]</span>
+
+<span class="k">def</span> step(<span class="k">self</span>):
+    <span class="k">self</span>.t += DT
+    <span class="c"># actuator lag, then kinematic bicycle; same no-reverse rule as the sim</span>
+    <span class="k">self</span>.steer += (<span class="k">self</span>.steer_cmd - <span class="k">self</span>.steer) * DT / STEER_TAU
+    a = <span class="n">0.0</span> <span class="k">if</span> (<span class="k">self</span>.v &lt;= <span class="n">0.0</span> <span class="k">and</span> <span class="k">self</span>.a_cmd &lt; <span class="n">0.0</span>) <span class="k">else</span> <span class="k">self</span>.a_cmd
+    <span class="k">self</span>.v = <span class="f">max</span>(<span class="n">0.0</span>, <span class="k">self</span>.v + a * DT)
+    dyaw = <span class="k">self</span>.v / WHEELBASE * math.tan(<span class="k">self</span>.steer) * DT
+    <span class="k">self</span>.yaw += dyaw
+    <span class="k">self</span>.x += <span class="k">self</span>.v * math.cos(<span class="k">self</span>.yaw) * DT
+    <span class="k">self</span>.y += <span class="k">self</span>.v * math.sin(<span class="k">self</span>.yaw) * DT</code></pre>
+
+<p>Read each line as one physical fact:</p>
+<ul>
+<li><code>self.steer += (steer_cmd - steer) * DT / STEER_TAU</code> — the
+steering wheel doesn't snap instantly to a new angle; it eases toward the
+commanded angle with a time constant of 0.15 s (a first-order lag, the
+simplest honest model of an actuator with inertia).</li>
+<li><code>dyaw = v / WHEELBASE * tan(steer) * DT</code> — this <em>is</em> the
+kinematic bicycle model: turning rate is forward speed times
+<code>tan(steering angle)</code>, divided by wheelbase. A tighter wheelbase or
+sharper steering angle turns the car faster for the same speed.</li>
+<li>The last two lines are just "move forward along the current heading" —
+standard 2D integration.</li>
+</ul>
+
+<h3>Scoring circle error — and the bug the prediction test found</h3>
+<pre><code><span class="c"># radial error to the nearest circle, sampled only when clearly off</span>
+<span class="c"># the centerline strip AND within the circles' x-span (a drifted</span>
+<span class="c"># exit leg off-axis would otherwise be scored against the circles)</span>
+<span class="k">if</span> <span class="f">abs</span>(<span class="k">self</span>.y) &gt; <span class="n">1.0</span> <span class="k">and</span> (CROSS_X - RADIUS - <span class="n">1.0</span>) &lt; <span class="k">self</span>.x &lt; (CROSS_X + RADIUS + <span class="n">1.0</span>):
+    err = <span class="f">min</span>(
+        <span class="f">abs</span>(math.hypot(<span class="k">self</span>.x - CROSS_X, <span class="k">self</span>.y + RADIUS) - RADIUS),
+        <span class="f">abs</span>(math.hypot(<span class="k">self</span>.x - CROSS_X, <span class="k">self</span>.y - RADIUS) - RADIUS),
+    )
+    <span class="k">self</span>.circ_err_sum += err
+    <span class="k">self</span>.circ_err_max = <span class="f">max</span>(<span class="k">self</span>.circ_err_max, err)</code></pre>
+
+<div class="bugbox"><b>Bug found by our own prediction-test experiment</b>
+The x-span condition (<code>(CROSS_X - RADIUS - 1.0) &lt; self.x &lt; ...</code>)
+was added <em>after</em> a real-simulator run under odometry drift produced a
+16.9 m "circle error" that was obviously wrong. The original gate only
+checked <code>abs(self.y) &gt; 1.0</code> — meant to exclude the straight
+entry/exit legs near the centerline. But under drift, the exit leg can end up
+off-axis (large <code>|y|</code>) while still being nowhere near the circles
+— and the old gate would then score that point against the nearest circle
+anyway. The fix restricts scoring to the circles' actual x-range. This was
+found by <code>measure_skidpad.py</code> (Part VII) during the EKF
+experiment, and the same fix was applied here and there simultaneously.</div>
+
+<div class="say"><b>30-second summary to say out loud</b>
+"sil_skidpad steps the same kinematic bicycle model used everywhere in this
+project — actuator lag, then the standard bicycle turning-rate equation.
+Verified against it: 5 cm max radial error, exactly 8π radians of turning.
+Its scoring logic itself had a bug our own experiment caught — a drifted exit
+leg getting scored against circles it wasn't near — which we fixed in both
+this file and the full-sim measurement tool at the same time."</div>
+
+</div>
+</details>
+
+<!-- ============================================================ -->
+<h2 id="sil_trackdrive"><span class="part-label">Part IV</span><span class="no">·</span>sil_trackdrive.py</h2>
+
+<details class="filecard">
+<summary>
+  <span class="path">fs_autonomy/sil_trackdrive.py</span>
+  <span class="loc">384 lines — the largest file in the project</span>
+  <span class="side ours">ours</span>
+  <span class="purpose">SIL harness for trackdrive — bicycle + synthetic track + perception error model</span>
+</summary>
+<div class="inner">
+
+<p>This is the busiest file because it does three jobs at once: builds a
+fake racetrack, steps the same bicycle model as <code>sil_skidpad</code>, and
+runs a full <strong>perception error model</strong> — this is the file the
+Monte-Carlo sweeps and the YOLO error profile both plug into.</p>
+
+<h3>Building a track — a wobbly ellipse, procedurally</h3>
+<pre><code>ELL_A, ELL_B, WOBBLE = <span class="n">17.0</span>, <span class="n">12.0</span>, <span class="n">0.8</span>
+
+<span class="k">def</span> build_track():
+    n = <span class="n">720</span>
+    center = []
+    <span class="k">for</span> i <span class="k">in</span> <span class="f">range</span>(n):
+        th = -math.pi / <span class="n">2.0</span> + <span class="n">2.0</span> * math.pi * i / n
+        px = ELL_A * math.cos(th)
+        py = ELL_B * math.sin(th)
+        norm = math.hypot(px / ELL_A**<span class="n">2</span>, py / ELL_B**<span class="n">2</span>)
+        nx, ny = (px / ELL_A**<span class="n">2</span>) / norm, (py / ELL_B**<span class="n">2</span>) / norm  <span class="c"># outward normal</span>
+        w = WOBBLE * math.sin(<span class="n">3.0</span> * th)
+        center.append((px + w * nx, ELL_B + py + w * ny))</code></pre>
+
+<p>An ellipse (<code>17 × 12</code> m semi-axes) sampled at 720 points around
+its circumference, then each point is pushed outward or inward along its
+<strong>normal direction</strong> by a sinusoidal "wobble" (3 full oscillations
+per lap) — that's what turns a plain ellipse into a track with S-bends. The
+outward normal of an ellipse isn't just the radius direction (unlike a
+circle), so it's computed properly from the ellipse's gradient
+(<code>px/a², py/b²</code>, normalized).</p>
+
+<pre><code>blue, yellow = [], []
+dist = CONE_SPACING
+<span class="k">for</span> i <span class="k">in</span> <span class="f">range</span>(n):
+    ...
+    dist += seg
+    <span class="k">if</span> dist &gt;= CONE_SPACING:
+        dist = <span class="n">0.0</span>
+        tx, ty = (x1 - x0) / seg, (y1 - y0) / seg      <span class="c"># tangent direction</span>
+        lx, ly = -ty, tx                                <span class="c"># rotate 90 deg = left-of-travel normal</span>
+        blue.append((x0 + HALF_TRACK * lx, y0 + HALF_TRACK * ly))
+        yellow.append((x0 - HALF_TRACK * lx, y0 - HALF_TRACK * ly))</code></pre>
+
+<p>Cones are placed every <code>CONE_SPACING</code> (3.5 m) of arc length
+along the centerline, offset ±<code>HALF_TRACK</code> to either side —
+blue on the left of the direction of travel, yellow on the right, exactly
+matching FS convention. The left-of-travel direction is found by rotating the
+local tangent vector 90° (a 2D rotation trick: <code>(tx,ty) → (-ty,tx)</code>).</p>
+
+<h3>The perception error model — where the measured YOLO profile plugs in</h3>
+<pre><code><span class="k">def</span> error_at(<span class="k">self</span>, r):
+    <span class="c">"""(p_detect, color_flip_prob, bearing_sigma_deg, range_sigma_frac) at range r."""</span>
+    <span class="k">if</span> <span class="k">self</span>.profile <span class="k">is</span> <span class="k">None</span>:
+        <span class="k">return</span> (<span class="k">self</span>.p_detect_scale, <span class="k">self</span>.color_flip_prob,
+                <span class="k">self</span>.bearing_noise_deg, <span class="k">self</span>.range_noise_frac)
+    edges = <span class="k">self</span>.profile[<span class="s">"edges"</span>]
+    b = <span class="f">len</span>(edges) - <span class="n">2</span>
+    <span class="k">for</span> i <span class="k">in</span> <span class="f">range</span>(<span class="f">len</span>(edges) - <span class="n">1</span>):
+        <span class="k">if</span> edges[i] &lt;= r &lt; edges[i + <span class="n">1</span>]:
+            b = i
+            <span class="k">break</span>
+    <span class="k">return</span> (<span class="k">self</span>.profile[<span class="s">"p_detect"</span>][b] * <span class="k">self</span>.p_detect_scale,
+            <span class="n">1.0</span> - <span class="k">self</span>.profile[<span class="s">"color_acc"</span>][b],
+            <span class="k">self</span>.profile[<span class="s">"bearing_sigma_deg"</span>][b],
+            <span class="k">self</span>.profile[<span class="s">"range_sigma_frac"</span>][b])</code></pre>
+
+<p>Two modes, chosen automatically: with no profile loaded, use flat
+manually-set knobs (for sweeping one dimension at a time, e.g. "what if
+detection probability were always 60%"). With a profile loaded (from
+<code>extract_error_profile.py</code>, Part VII — the real YOLO's measured
+behavior), look up which distance <em>bucket</em> the cone falls in and use
+that bucket's real, measured statistics instead. This is the literal
+mechanism behind "inject a real detector's measured errors into the loop."</p>
+
+<pre><code><span class="k">def</span> sense_frame(<span class="k">self</span>):
+    dets = []
+    c, s = math.cos(-<span class="k">self</span>.yaw), math.sin(-<span class="k">self</span>.yaw)
+    <span class="k">for</span> cones, color <span class="k">in</span> ((<span class="k">self</span>.blue, <span class="s">"blue"</span>), (<span class="k">self</span>.yellow, <span class="s">"yellow"</span>)):
+        <span class="k">for</span> cx, cy <span class="k">in</span> cones:
+            dx, dy = cx - <span class="k">self</span>.x, cy - <span class="k">self</span>.y
+            bx, by = c * dx - s * dy, s * dx + c * dy    <span class="c"># world -> car body frame</span>
+            r = math.hypot(bx, by); th = math.atan2(by, bx)
+            <span class="k">if</span> r &gt; <span class="k">self</span>.sensor_range <span class="k">or</span> <span class="f">abs</span>(th) &gt; <span class="k">self</span>.fov_half:
+                <span class="k">continue</span>                                      <span class="c"># geometric cutoff first</span>
+            p_det, flip, b_sig, r_sig = <span class="k">self</span>.error_at(r)
+            <span class="k">if</span> <span class="k">self</span>.rng.random() &gt; p_det:
+                <span class="k">continue</span>                                      <span class="c"># the model "misses" this cone</span>
+            <span class="k">if</span> r_sig &gt; <span class="n">0.0</span>:
+                r = <span class="f">max</span>(<span class="n">0.5</span>, r * (<span class="n">1.0</span> + <span class="k">self</span>.rng.gauss(<span class="n">0.0</span>, r_sig)))
+            <span class="k">if</span> b_sig &gt; <span class="n">0.0</span>:
+                th += math.radians(<span class="k">self</span>.rng.gauss(<span class="n">0.0</span>, b_sig))
+            col = color
+            <span class="k">if</span> flip &gt; <span class="n">0.0</span> <span class="k">and</span> <span class="k">self</span>.rng.random() &lt; flip:
+                col = <span class="s">"yellow"</span> <span class="k">if</span> color == <span class="s">"blue"</span> <span class="k">else</span> <span class="s">"blue"</span>
+            dets.append((r * math.cos(th), r * math.sin(th), col))
+
+    <span class="k">for</span> _ <span class="k">in</span> <span class="f">range</span>(<span class="k">self</span>.poisson(<span class="k">self</span>.fp_per_frame)):
+        r = <span class="k">self</span>.rng.uniform(<span class="n">1.0</span>, <span class="k">self</span>.sensor_range)
+        th = <span class="k">self</span>.rng.uniform(-<span class="k">self</span>.fov_half, <span class="k">self</span>.fov_half)
+        dets.append((r * math.cos(th), r * math.sin(th), <span class="k">self</span>.rng.choice((<span class="s">"blue"</span>, <span class="s">"yellow"</span>))))
+    <span class="k">return</span> dets</code></pre>
+
+<p>This function generates one sensor frame, applying every error source in
+sequence to every ground-truth cone: geometric field-of-view cutoff first
+(hard limit — a real sensor simply cannot see behind that angle/range),
+<em>then</em> a coin-flip against the measured detection probability (a
+"miss"), <em>then</em> range and bearing noise (a "found it, but slightly
+wrong position"), <em>then</em> a color flip (a "found it, called it the
+wrong color"). Finally, false positives are added — phantom cones that don't
+exist — drawn from a <strong>Poisson distribution</strong> (the standard
+probability model for "how many random independent events happen in a fixed
+window," here "how many false detections per frame").</p>
+
+<h3>Poisson sampling, implemented from scratch</h3>
+<pre><code><span class="k">def</span> poisson(<span class="k">self</span>, lam):
+    <span class="k">if</span> lam &lt;= <span class="n">0.0</span>:
+        <span class="k">return</span> <span class="n">0</span>
+    limit = math.exp(-lam)
+    k, p = <span class="n">0</span>, <span class="n">1.0</span>
+    <span class="k">while</span> <span class="k">True</span>:
+        p *= <span class="k">self</span>.rng.random()
+        <span class="k">if</span> p &lt;= limit:
+            <span class="k">return</span> k
+        k += <span class="n">1</span></code></pre>
+<p>Knuth's classic algorithm: multiply random numbers together until the
+product drops below <code>e<sup>-λ</sup></code>; the count of multiplications
+is Poisson-distributed with mean λ. Implemented directly rather than pulled
+from a library, because Python's standard <code>random</code> module (used
+everywhere else for reproducibility) doesn't include a Poisson sampler, and
+adding a dependency (like <code>numpy</code>) just for this would break the
+"runs anywhere with just Python + ROS" simplicity of the harnesses.</p>
+
+<h3>Odometry corruption, latency buffer, realtime scaling</h3>
+<pre><code><span class="k">def</span> publish_cones(<span class="k">self</span>):
+    <span class="k">self</span>.frame_buf.append(<span class="k">self</span>.sense_frame())
+    <span class="k">if</span> <span class="f">len</span>(<span class="k">self</span>.frame_buf) &lt;= <span class="k">self</span>.latency_frames:
+        <span class="k">return</span>                            <span class="c"># not enough history yet -- simulate delay</span>
+    dets = <span class="k">self</span>.frame_buf.popleft()          <span class="c"># serve an OLD frame, not the current one</span>
+    ...</code></pre>
+
+<p>A <code>deque</code> (double-ended queue) used as a fixed-length delay
+line: instead of publishing the frame just computed, publish one from
+<code>latency_frames</code> frames ago — modeling the real processing lag a
+neural network inference adds between "camera captured this" and "detections
+are available."</p>
+
+<pre><code><span class="k">self</span>.create_timer(DT / rt, <span class="k">self</span>.step)   <span class="c"># rt = realtime_factor</span></code></pre>
+<p>One line, but it's what makes thousands of Monte-Carlo episodes
+affordable: dividing the timer period by <code>realtime_factor</code> makes
+the whole simulation step faster than real time (we validated up to 3× on
+this VM) — a 95-second trackdrive episode finishes in about 32 seconds.</p>
+
+<div class="say"><b>30-second summary to say out loud</b>
+"sil_trackdrive is three things in one file: a procedurally generated track
+(an ellipse warped by a sine wave), the same bicycle-model physics used
+elsewhere, and a full sensor error model — detection dropout, position and
+bearing noise, color confusion, false positives, and processing latency, all
+distance-dependent and loadable directly from a real detector's measured
+profile. This is the file the whole Monte-Carlo robustness campaign runs
+against."</div>
+
+<details class="quiz"><summary>Why simulate false positives with Poisson rather than a fixed count per frame?</summary>
+<div class="body">Real spurious detections don't happen a fixed number of
+times per frame — they're rare, independent events (a shadow, a reflection,
+background clutter momentarily resembling a cone). Poisson is the standard
+distribution for "how many rare independent events in a fixed window,"
+which is exactly this situation, and it naturally produces frames with zero
+false positives most of the time and occasionally two or three — matching
+real detector behavior far better than a constant.</div></details>
+
+</div>
+</details>
+
+<!-- ============================================================ -->
+<h2 id="cone_viz"><span class="part-label">Part V · Support &amp; viz</span><span class="no">·</span>cone_viz.py</h2>
+
+<details class="filecard">
+<summary>
+  <span class="path">fs_autonomy/cone_viz.py</span>
+  <span class="loc">121 lines</span>
+  <span class="side ours">ours</span>
+  <span class="purpose">republishes cone arrays as MarkerArrays so Foxglove/RViz can draw them</span>
+</summary>
+<div class="inner">
+
+<p>Not part of the control loop at all — a pure convenience node. The sim
+publishes cones as <code>eufs_msgs/ConeWithColorProbabilityArray</code>
+(points + probabilities), which stock Foxglove doesn't know how to draw.
+This node translates that into <code>visualization_msgs/MarkerArray</code>,
+which every ROS visualization tool understands natively.</p>
+
+<pre><code>m = Marker()
+m.type = Marker.CYLINDER
+m.pose.position.z = <span class="f">float</span>(cone.point.z) + height / <span class="n">2.0</span>   <span class="c"># sit on the ground</span>
+m.scale.x = diameter; m.scale.y = diameter; m.scale.z = height
+m.color.r, m.color.g, m.color.b, m.color.a = r, g, b, <span class="n">1.0</span></code></pre>
+
+<p>Each cone becomes a colored cylinder, sized from a small lookup table that
+mirrors real FS cone dimensions (standard cones 22.8 cm diameter / 32.5 cm
+tall; the big orange start/finish markers 28.5 cm / 50.5 cm). The
+<code>z + height/2</code> offset exists because ROS markers are positioned at
+their <em>center</em>, but cone data gives a ground-contact point — without
+the offset, cones would appear to float half-buried.</p>
+
+<pre><code><span class="c"># clear markers left over from a previously loaded, longer track</span>
+<span class="k">for</span> i <span class="k">in</span> <span class="f">range</span>(<span class="f">len</span>(msg.cones), <span class="k">self</span>._prev_count):
+    m = Marker(); m.id = i; m.action = Marker.DELETE
+    out.markers.append(m)</code></pre>
+<p>A small correctness detail worth knowing: ROS markers persist until
+explicitly deleted. If a shorter track is loaded after a longer one, the old
+extra cones would stay drawn forever unless we send explicit
+<code>DELETE</code> actions for every marker ID beyond the current count.</p>
+
+<div class="say"><b>30-second summary to say out loud</b>
+"A small translation node — sim cone data in, colored cylinder markers out —
+so we can watch cones render in an off-the-shelf tool with no custom
+extension needed."</div>
+
+</div>
+</details>
+
+<!-- ============================================================ -->
+<h2 id="launches"><span class="part-label">Part VI · Launch &amp; config</span><span class="no">·</span>launch files</h2>
+
+<details class="filecard" open>
+<summary>
+  <span class="path">launch/autonomy.launch.py</span>
+  <span class="loc">134 lines</span>
+  <span class="side ours">ours</span>
+  <span class="purpose">brings up the whole stack — bridge, viz, all 4 controllers, EKF</span>
+</summary>
+<div class="inner">
+
+<p>A ROS 2 launch file is a Python program whose job is to describe
+<em>which processes to start, with what parameters</em>. This is the file
+you run before every demo.</p>
+
+<pre><code>wait_for_sim = ExecuteProcess(
+    cmd=[<span class="s">"bash"</span>, <span class="s">"-c"</span>,
+        <span class="s">"until ros2 service type /eufs_sim2/get_map &gt;/dev/null 2&gt;&amp;1; "</span>
+        <span class="s">"do sleep 1; done; echo 'sim is up'"</span>],
+)
+bridge = IncludeLaunchDescription(...)   <span class="c"># foxglove_bridge</span>
+...
+RegisterEventHandler(OnProcessExit(target_action=wait_for_sim, on_exit=[bridge]))</code></pre>
+
+<p>This is a small but important piece of orchestration: the visualization
+bridge <strong>snapshots</strong> the sim's topics and services the moment it
+starts, so starting it before the sim is fully up would give Foxglove a
+permanently stale view. <code>wait_for_sim</code> is a shell one-liner that
+polls for a specific sim service to exist, then exits; <code>bridge</code> is
+only started <em>after that process exits</em> — a launch-file idiom for
+sequencing two things that otherwise have no dependency relationship ROS
+itself understands.</p>
+
+<pre><code><span class="k">if</span> HAVE_EKF:
+    odom_topic = PythonExpression([
+        <span class="s">"'/odometry/filtered' if '"</span>, LaunchConfiguration(<span class="s">"realistic"</span>),
+        <span class="s">"' == 'true' else '/odom'"</span>])
+<span class="k">else</span>:
+    odom_topic = <span class="s">"/odom"</span>
+odom_override = {<span class="s">"odom_topic"</span>: odom_topic}</code></pre>
+
+<p>This is the <code>realistic:=true</code> switch. <code>LaunchConfiguration</code>
+reads a command-line argument at launch time;
+<code>PythonExpression</code> lets a launch file compute a value with an
+actual (tiny) Python expression evaluated when the launch runs. The net
+effect: every controller node below gets <code>odom_override</code> merged
+into its parameters, silently switching its odometry source based on one
+flag. <code>HAVE_EKF</code> (checked at the top of the file via a
+try/except around <code>get_package_share_directory("robot_localization")</code>)
+means this whole feature disables itself gracefully on any machine — like a
+factory build machine — that doesn't have the EKF package installed.</p>
+
+<pre><code>Node(
+    package=<span class="s">"fs_autonomy"</span>, executable=<span class="s">"trackdrive_driver"</span>, name=<span class="s">"autocross_driver"</span>,
+    parameters=[autocross_params, odom_override], output=<span class="s">"screen"</span>,
+),</code></pre>
+<p>The autocross "controller" is <em>the exact same compiled executable</em>
+as trackdrive, launched twice under different names with different config
+files — one sets <code>mission: TRACK_DRIVE, laps: 10</code>, the other
+<code>mission: AUTOCROSS, laps: 1</code>. Both instances run simultaneously
+and each self-gates on its own mission string, so only the correct one ever
+activates.</p>
+
+</div>
+</details>
+
+<details class="filecard">
+<summary>
+  <span class="path">launch/estimation.launch.py</span>
+  <span class="loc">51 lines</span>
+  <span class="side ours">ours</span>
+  <span class="purpose">EKF stack alone — the 3 adapter/filter nodes</span>
+</summary>
+<div class="inner">
+
+<pre><code>Node(package=<span class="s">"tf2_ros"</span>, executable=<span class="s">"static_transform_publisher"</span>,
+     arguments=[<span class="s">"--frame-id"</span>, <span class="s">"base_footprint"</span>, <span class="s">"--child-frame-id"</span>, <span class="s">"imu"</span>]),
+Node(package=<span class="s">"fs_autonomy"</span>, executable=<span class="s">"wheel_odometry"</span>, name=<span class="s">"wheel_odometry"</span>),
+Node(package=<span class="s">"fs_autonomy"</span>, executable=<span class="s">"imu_frontend"</span>, name=<span class="s">"imu_frontend"</span>),
+Node(package=<span class="s">"robot_localization"</span>, executable=<span class="s">"ekf_node"</span>,
+     name=<span class="s">"ekf_filter_node"</span>, parameters=[ekf_params]),</code></pre>
+
+<p>Four nodes started in sequence. The first is a "static transform
+publisher" — a built-in ROS 2 tool that declares a fixed coordinate-frame
+relationship (here, the IMU sits exactly at the car's origin — an identity
+transform) because the sim's robot description never defined an "imu" frame,
+and the EKF needs every sensor's frame to exist in the TF tree even if it's
+trivial. The other three are the adapters and the filter itself, walked in
+Parts III and VI.</p>
+
+<div class="say"><b>30-second summary to say out loud</b>
+"autonomy.launch.py starts everything for a normal demo — bridge,
+visualization, all four controllers — and now includes the EKF stack by
+default, feeding /odometry/filtered whether or not any controller is
+listening to it. estimation.launch.py is that EKF stack in isolation, for
+running it without the rest. realistic:=true is the one flag that actually
+switches control onto it."</div>
+
+</div>
+</details>
+
+<!-- ============================================================ -->
+<h2 id="configs"><span class="part-label">Part VI</span><span class="no">·</span>config yamls</h2>
+
+<p>Every controller's tunable numbers live in YAML, not in code — this is
+what lets <code>run_sweeps.py</code> override a single parameter for an
+experiment without touching or rebuilding any source file.</p>
+
+<div class="tablewrap"><table>
+<tr><th>File</th><th>Key parameters</th></tr>
+<tr><td><code>accel_params.yaml</code></td><td><code>target_speed: 8.0</code>, <code>finish_distance: 75.0</code> (FS rule), <code>kp: 1.5</code></td></tr>
+<tr><td><code>skidpad_params.yaml</code></td><td><code>entry_distance: 9.8</code>, <code>circle_radius: 9.25</code>, <code>exit_distance: 22.0</code> — all read straight off <code>skidpad.csv</code> in the sim's own map data</td></tr>
+<tr><td><code>trackdrive_params.yaml</code></td><td><code>cones_topic: /cones/lenient</code> — the workaround for upstream bug #2 (Part VIII); <code>laps: 10</code></td></tr>
+<tr><td><code>autocross_params.yaml</code></td><td>identical to trackdrive except <code>mission: AUTOCROSS</code>, <code>laps: 1</code></td></tr>
+<tr><td><code>ekf_params.yaml</code></td><td>walked fully in Part III/field guide §10 — which sensors get fused and how</td></tr>
+</table></div>
+
+<p>One line worth pointing at directly in a viva, because it's a concrete,
+quotable piece of evidence that we read the simulator's own source rather
+than guessing: <code>trackdrive_params.yaml</code> line 4 —</p>
+<pre><code>cones_topic: /cones/lenient  <span class="c"># sim's fused /cones is never published (upstream bug)</span></code></pre>
+
+<!-- ============================================================ -->
+<h2 id="packaging"><span class="part-label">Part VI</span><span class="no">·</span>setup.py &amp; Dockerfile</h2>
+
+<details class="filecard">
+<summary>
+  <span class="path">setup.py</span>
+  <span class="loc">39 lines</span>
+  <span class="side ours">ours</span>
+  <span class="purpose">how "ros2 run fs_autonomy accel_driver" resolves to a Python function</span>
+</summary>
+<div class="inner">
+<pre><code>entry_points={
+    <span class="s">"console_scripts"</span>: [
+        <span class="s">"accel_driver = fs_autonomy.accel_driver:main"</span>,
+        <span class="s">"skidpad_driver = fs_autonomy.skidpad_driver:main"</span>,
+        <span class="s">"trackdrive_driver = fs_autonomy.trackdrive_driver:main"</span>,
+        <span class="s">"cone_viz = fs_autonomy.cone_viz:main"</span>,
+        <span class="s">"wheel_odometry = fs_autonomy.wheel_odometry:main"</span>,
+        <span class="s">"imu_frontend = fs_autonomy.imu_frontend:main"</span>,
+        <span class="s">"sil_accel = fs_autonomy.sil_accel:main"</span>,
+        <span class="s">"sil_skidpad = fs_autonomy.sil_skidpad:main"</span>,
+        <span class="s">"sil_trackdrive = fs_autonomy.sil_trackdrive:main"</span>,
+    ],
+},</code></pre>
+<p>Standard Python packaging (<code>setuptools</code>), used by ROS 2's
+build tool to turn <code>ros2 run fs_autonomy accel_driver</code> into "call
+<code>main()</code> inside <code>fs_autonomy/accel_driver.py</code>." Every
+file in Parts II–V has exactly this line at its bottom.</p>
+</div>
+</details>
+
+<details class="filecard">
+<summary>
+  <span class="path">docker/Dockerfile</span>
+  <span class="loc">31 lines</span>
+  <span class="side ours">ours</span>
+  <span class="purpose">the multi-arch image — x86 on this VM, arm64 unmodified on the Jetson</span>
+</summary>
+<div class="inner">
+<pre><code><span class="k">FROM</span> ros:humble-ros-base
+
+RUN git clone --depth 1 https://gitlab.com/eufs/eufs_msgs.git src/eufs_msgs
+COPY src/fs_autonomy src/fs_autonomy
+RUN . /opt/ros/humble/setup.sh &amp;&amp; colcon build</code></pre>
+<p>Three things happen: start from the official multi-arch ROS 2 base image
+(the same tag produces an x86_64 or arm64 image depending on which machine
+builds it — no per-architecture branching needed), clone
+<em>only</em> the message-definitions package (not the simulator itself —
+this container has no idea eufs_sim2 exists), copy in our own source, build.
+That's the entire containment rule made concrete as a Dockerfile: if this
+image builds and runs, our code has zero dependency on anything sim-side by
+construction, not by promise.</p>
+</div>
+</details>
+
+<!-- ============================================================ -->
+<h2 id="run_sweeps"><span class="part-label">Part VII · Experiment scripts</span><span class="no">·</span>run_sweeps.py</h2>
+
+<details class="filecard" open>
+<summary>
+  <span class="path">scripts/run_sweeps.py</span>
+  <span class="loc">244 lines</span>
+  <span class="side ours">ours</span>
+  <span class="purpose">the Monte-Carlo batch runner — drives all the robustness results</span>
+</summary>
+<div class="inner">
+
+<p>Not a ROS node — a plain script that launches ROS nodes as
+<em>subprocesses</em> and parses their text output. This is the machinery
+behind every success-rate curve in the project.</p>
+
+<pre><code>MISSIONS = {
+    <span class="s">"accel"</span>: {<span class="s">"driver"</span>: <span class="s">"accel_driver"</span>, <span class="s">"harness"</span>: <span class="s">"sil_accel"</span>, ...},
+    <span class="s">"skidpad"</span>: {<span class="s">"driver"</span>: <span class="s">"skidpad_driver"</span>, <span class="s">"harness"</span>: <span class="s">"sil_skidpad"</span>, ...},
+    <span class="s">"trackdrive"</span>: {<span class="s">"driver"</span>: <span class="s">"trackdrive_driver"</span>, <span class="s">"harness"</span>: <span class="s">"sil_trackdrive"</span>, ...},
+}</code></pre>
+<p>One dictionary describes all three missions' driver/harness pairing,
+which parameters belong to the driver vs. the harness, which metrics to
+parse, and a per-mission <strong>pass/fail rule</strong>:</p>
+
+<pre><code><span class="k">def</span> skidpad_success(r, args):
+    <span class="k">return</span> (<span class="f">abs</span>(<span class="f">float</span>(r[<span class="s">"turn_total"</span>]) - <span class="n">8.0</span> * math.pi) &lt; <span class="n">0.6</span>
+            <span class="k">and</span> <span class="f">float</span>(r[<span class="s">"circ_err_max"</span>]) &lt; <span class="n">1.0</span>
+            <span class="k">and</span> <span class="f">float</span>(r[<span class="s">"final_x"</span>]) &gt; <span class="n">25.0</span>
+            <span class="k">and</span> <span class="f">float</span>(r[<span class="s">"final_v"</span>]) &lt; <span class="n">0.05</span>)</code></pre>
+<p>Each mission's "pass" definition is written out explicitly and separately
+— skidpad must turn close to 8π radians <em>and</em> stay within a metre of
+the ideal circle <em>and</em> get far enough along the exit <em>and</em> stop
+— rather than one generic threshold, because "success" genuinely means
+different things per event.</p>
+
+<pre><code><span class="k">def</span> run_episode(mission, cfg, seed, args, env):
+    driver = spawn([<span class="s">"ros2"</span>, <span class="s">"run"</span>, <span class="s">"fs_autonomy"</span>, mission[<span class="s">"driver"</span>]] + ros_args(driver_p), env)
+    time.sleep(<span class="n">2.0</span>)                       <span class="c"># let the driver subscribe before the harness starts talking</span>
+    harness = spawn([<span class="s">"ros2"</span>, <span class="s">"run"</span>, <span class="s">"fs_autonomy"</span>, mission[<span class="s">"harness"</span>]] + ros_args(harness_p), env, capture=<span class="k">True</span>)
+    out, _ = harness.communicate(timeout=...)
+    <span class="k">for</span> line <span class="k">in</span> out.splitlines():
+        <span class="k">if</span> line.startswith(<span class="s">"RESULT "</span>):
+            result = <span class="f">dict</span>(tok.split(<span class="s">"="</span>) <span class="k">for</span> tok <span class="k">in</span> line.split()[<span class="n">1</span>:])</code></pre>
+<p>One episode = spawn the controller and the harness as two OS subprocesses
+under the same environment (which sets <code>ROS_DOMAIN_ID</code>, the
+isolation mechanism from the field guide §2), wait for the harness's stdout
+to contain a line starting with <code>RESULT</code>, and parse it — every
+harness's final print statement, e.g.
+<code>RESULT laps=3 dev_mean=0.048...</code>, is deliberately formatted as
+simple <code>key=value</code> tokens for exactly this reason: the harnesses
+are designed to be machine-readable, not just human-readable log lines.</p>
+
+<pre><code>configs = [<span class="f">dict</span>(fixed, **<span class="f">dict</span>(combo))
+           <span class="k">for</span> combo <span class="k">in</span> (itertools.product(*sweeps) <span class="k">if</span> sweeps <span class="k">else</span> [()])]</code></pre>
+<p><code>itertools.product</code> is Python's Cartesian-product tool —
+give it several lists of possible values for several parameters and it
+returns every combination of one value from each. Stacking two <code>--sweep</code>
+flags therefore automatically produces a full grid of experiments, not
+just two separate 1D sweeps.</p>
+
+<div class="say"><b>30-second summary to say out loud</b>
+"run_sweeps.py is the batch experiment runner: give it a mission and a
+parameter range, and it spawns the controller and harness as real ROS 2
+processes, isolated on their own DDS domain, seed by seed, parsing each
+run's verdict into one CSV row. This is what turned 'we have a test' into
+'we have thousands of tests and a success-rate curve.'"</div>
+
+</div>
+</details>
+
+<h2 id="plot_sweeps"><span class="part-label">Part VII</span><span class="no">·</span>plot_sweeps.py</h2>
+<details class="filecard">
+<summary>
+  <span class="path">scripts/plot_sweeps.py</span>
+  <span class="loc">80 lines</span>
+  <span class="side ours">ours</span>
+  <span class="purpose">turns a sweep CSV into the success-rate graph</span>
+</summary>
+<div class="inner">
+<pre><code><span class="k">for</span> row <span class="k">in</span> csv.DictReader(f):
+    x = <span class="f">float</span>(row[args.x])
+    g = groups.setdefault(x, {<span class="s">"n"</span>: <span class="n">0</span>, <span class="s">"pass"</span>: <span class="n">0</span>, <span class="s">"dev"</span>: []})
+    g[<span class="s">"n"</span>] += <span class="n">1</span>; g[<span class="s">"pass"</span>] += <span class="f">int</span>(row[<span class="s">"success"</span>])
+...
+rate = [<span class="n">100.0</span> * groups[x][<span class="s">"pass"</span>] / groups[x][<span class="s">"n"</span>] <span class="k">for</span> x <span class="k">in</span> xs]</code></pre>
+<p>Groups every CSV row by its swept parameter value, and for each group
+computes <code>100 × (passes / total)</code> — literally a percentage
+success rate. The rest of the file is matplotlib boilerplate producing two
+stacked charts: success rate on top, and median/worst path-deviation below
+it, with a red reference line at the track's half-width.</p>
+<div class="say"><b>30-second summary to say out loud</b>
+"Plain aggregation: group episodes by the parameter value that was swept,
+divide passes by total, plot. The output PNG is the actual evidence figure
+for the robustness chapter."</div>
+</div>
+</details>
+
+<h2 id="extract_error_profile"><span class="part-label">Part VII</span><span class="no">·</span>extract_error_profile.py</h2>
+<details class="filecard">
+<summary>
+  <span class="path">scripts/extract_error_profile.py</span>
+  <span class="loc">213 lines</span>
+  <span class="side ours">ours</span>
+  <span class="purpose">measures the trained YOLO's real failure statistics on held-out photos</span>
+</summary>
+<div class="inner">
+
+<p>Run <strong>offline</strong>, on whichever machine has the FSOCO dataset
+and the trained weights — never inside ROS, never in the loop.</p>
+
+<pre><code>r_gt = args.focal_px * args.cone_height / <span class="f">max</span>(g[<span class="s">"h_px"</span>], <span class="n">1e-6</span>)</code></pre>
+<p>The range-from-box-height trick: a cone's real physical height is
+regulation-fixed (<code>args.cone_height</code>, default 0.325 m). Under the
+pinhole camera model, an object's apparent height in pixels is inversely
+proportional to its distance — so
+<code>distance = focal_length × real_height / pixel_height</code>. This is
+how the script gets a distance estimate for every labeled box despite FSOCO
+having no depth data at all.</p>
+
+<pre><code><span class="k">for</span> g <span class="k">in</span> <span class="f">sorted</span>(gt, key=<span class="k">lambda</span> g: -g[<span class="s">"h_px"</span>]):
+    ...
+    best, best_iou = <span class="k">None</span>, args.iou_match
+    <span class="k">for</span> p <span class="k">in</span> preds:
+        <span class="k">if</span> p[<span class="s">"matched"</span>]:
+            <span class="k">continue</span>
+        v = iou(g[<span class="s">"xyxy"</span>], p[<span class="s">"xyxy"</span>])
+        <span class="k">if</span> v &gt;= best_iou:
+            best, best_iou = p, v</code></pre>
+<p>Standard detection-evaluation matching: for every ground-truth box, find
+the model's best unclaimed prediction by <strong>IoU</strong>
+(Intersection-over-Union — overlap area divided by combined area; 1.0 =
+identical boxes, 0 = no overlap). A match only counts if IoU clears a
+threshold (default 0.5) — this greedy, nearest-first matching is the same
+basic approach standard detection metrics like mAP use.</p>
+
+<pre><code>profile = {
+    <span class="s">"p_detect"</span>: [det_count[i] / gt_count[i] <span class="k">if</span> gt_count[i] <span class="k">else</span> <span class="k">None</span> <span class="k">for</span> i <span class="k">in</span> <span class="f">range</span>(n_b)],
+    <span class="s">"color_accuracy"</span>: [...],
+    <span class="s">"bearing_err_deg_mean"</span>: [...],
+    <span class="s">"range_err_frac_mean"</span>: [...],
+    <span class="s">"false_positives_per_image"</span>: fp_total / images_used,
+}</code></pre>
+<p>The output is exactly the shape <code>sil_trackdrive.py</code>'s
+<code>error_at()</code> reads — this script's whole purpose is producing the
+JSON that other file consumes.</p>
+
+<div class="say"><b>30-second summary to say out loud</b>
+"This script never touches ROS or the simulator — it runs the trained
+network over labeled test photos it's never seen, matches predictions to
+ground truth by IoU, buckets everything by an estimated range derived from
+box height, and writes out exactly the per-range statistics the SIL harness
+needs to replay this model's real failure behavior in simulation."</div>
+
+</div>
+</details>
+
+<h2 id="extract_odom_profile"><span class="part-label">Part VII</span><span class="no">·</span>extract_odom_profile.py</h2>
+<details class="filecard">
+<summary>
+  <span class="path">scripts/extract_odom_profile.py</span>
+  <span class="loc">137 lines</span>
+  <span class="side ours">ours</span>
+  <span class="purpose">measures the real EKF against ground truth while a mission runs</span>
+</summary>
+<div class="inner">
+<pre><code><span class="k">def</span> on_est(<span class="k">self</span>, msg):
+    ...
+    e_yaw = math.atan2(math.sin(yaw_of(...) - tyaw), math.cos(yaw_of(...) - tyaw))
+    <span class="k">self</span>.samples.append((t - <span class="k">self</span>.t0, math.hypot(p.x - tx, p.y - ty), e_yaw, ...))</code></pre>
+<p>The EKF (state-estimation twin of the perception profile script) needs
+two live subscriptions running side by side — <code>/odom</code> (truth) and
+<code>/odometry/filtered</code> (the estimate) — and computes the error
+between them on every estimate message.</p>
+
+<pre><code><span class="s">"knobs"</span>: {
+    <span class="s">"odom_drift_m_per_sqrt_min"</span>:
+        <span class="f">round</span>(e_pos_end / math.sqrt(minutes), <span class="n">3</span>) <span class="k">if</span> minutes &gt; <span class="n">0.05</span> <span class="k">else</span> <span class="k">None</span>,
+    <span class="s">"odom_yaw_drift_deg_per_sqrt_min"</span>: ...,
+}</code></pre>
+<p>The final measured position error, divided by <code>√(minutes elapsed)</code>,
+inverts the exact formula <code>odom_corruptor.py</code> uses to scale its
+random walk — so this number can be pasted directly into a harness's
+<code>odom_drift_m_per_sqrt_min</code> parameter and reproduce the real
+filter's measured drift rate.</p>
+<div class="say"><b>30-second summary to say out loud</b>
+"Same idea as the perception profile script, for state estimation: subscribe
+to both the true and estimated pose while a real mission runs, measure the
+gap, and output it pre-converted into the exact units the SIL harness's
+drift knob expects."</div>
+</div>
+</details>
+
+<h2 id="measure_skidpad"><span class="part-label">Part VII</span><span class="no">·</span>measure_skidpad.py</h2>
+<details class="filecard">
+<summary>
+  <span class="path">scripts/measure_skidpad.py</span>
+  <span class="loc">158 lines</span>
+  <span class="side ours">ours</span>
+  <span class="purpose">true-geometry circle error in the FULL simulator — the prediction-test instrument</span>
+</summary>
+<div class="inner">
+<p>Purpose-built for one experiment (field guide §11): score skidpad's real
+circle-tracking error using <em>only</em> ground-truth <code>/odom</code>,
+regardless of what odometry source the controller under test is actually
+driving on. This is what let us compare "controller on ground truth" against
+"controller on the EKF" using the exact same yardstick.</p>
+<pre><code>c, s = math.cos(-yaw0), math.sin(-yaw0)
+lx = c * (p.x - x0) - s * (p.y - y0)
+ly = s * (p.x - x0) + c * (p.y - y0)</code></pre>
+<p>The identical start-frame rotation trick from <code>skidpad_driver.py</code>
+— reused here so this <em>independent measurement tool</em> scores in the
+same coordinate system the controller reasons in, making the comparison
+apples-to-apples.</p>
+<div class="say"><b>30-second summary to say out loud</b>
+"An independent measuring instrument, deliberately separate from the
+controller and from sil_skidpad's own scoring — it watches only true
+odometry from the outside and computes the same circle-error metric, which
+is what let us validate the SIL model's predictions against the real
+simulator honestly."</div>
+</div>
+</details>
+
+<h2 id="check_bridge"><span class="part-label">Part VII</span><span class="no">·</span>check_bridge.py</h2>
+<details class="filecard">
+<summary>
+  <span class="path">scripts/check_bridge.py</span>
+  <span class="loc">62 lines</span>
+  <span class="side ours">ours</span>
+  <span class="purpose">dev diagnostic — is the Foxglove connection problem the sim, the bridge, or the client?</span>
+</summary>
+<div class="inner">
+<pre><code>ws = <span class="k">await</span> websockets.connect(URI, subprotocols=[<span class="s">"foxglove.sdk.v1"</span>])
+...
+<span class="k">if</span> msg.get(<span class="s">"op"</span>) == <span class="s">"advertiseServices"</span>:
+    services.extend(msg.get(<span class="s">"services"</span>, []))</code></pre>
+<p>Connects to <code>foxglove_bridge</code> as a raw websocket client — the
+same protocol Foxglove Studio itself uses — and reports exactly what
+services the bridge is advertising. Not glamorous, but it turns "Foxglove is
+being weird" into a definite answer in seconds instead of a guessing session.</p>
+<div class="say"><b>30-second summary to say out loud</b>
+"A tiny diagnostic tool that speaks the bridge's own protocol directly, so a
+'the map won't load' problem gets diagnosed to server vs. client in one
+command instead of trial and error."</div>
+</div>
+</details>
+
+<!-- ============================================================ -->
+<h2 id="eufs"><span class="part-label">Part VIII · The other side of the wire</span><span class="no">·</span>meeting eufs_sim2</h2>
+
+<p>These are the exact simulator files our nodes exchange messages with. We
+did not write or modify any of this — it's included here because
+understanding what's on the <em>other</em> end of every topic is what makes
+"how do the controllers interact with eufs" a complete answer rather than
+half of one.</p>
+
+<details class="filecard" open>
+<summary>
+  <span class="path">eufs_sim2/src/control.cpp</span>
+  <span class="loc">11 lines, the whole file</span>
+  <span class="side eufs">eufs</span>
+  <span class="purpose">what the sim actually reads from /cmd</span>
+</summary>
+<div class="inner">
+<pre><code><span class="k">ControlInput</span> ToControlInput(<span class="k">const</span> ackermann_msgs::msg::AckermannDriveStamped &msg) {
+  ControlInput cmd;
+  cmd.acceleration = msg.drive.acceleration;
+  cmd.steering_angle = msg.drive.steering_angle;
+  <span class="k">return</span> cmd;
+}</code></pre>
+<div class="bugbox"><b>Upstream bug #1 — the whole file, quoted</b>
+This is <em>the entire function</em> that converts our published
+<code>/cmd</code> message into what the physics engine actually uses. The
+message type, <code>AckermannDriveStamped</code>, also carries a
+<code>drive.speed</code> field — but there is no line here that reads it.
+<code>ControlInput</code> (the internal type used downstream) structurally
+has no speed field at all. This is why <code>accel_driver.py</code>'s whole
+design is a closed-loop P-controller producing <em>acceleration</em>
+commands — commanding a target speed directly is not an option, by design of
+this function.</div>
+</div>
+</details>
+
+<details class="filecard">
+<summary>
+  <span class="path">eufs_sim2/src/plugin/cone_fusion.cpp</span>
+  <span class="loc">relevant lines shown</span>
+  <span class="side eufs">eufs</span>
+  <span class="purpose">where /cones/lenient comes from, and where the buggy /cones lives</span>
+</summary>
+<div class="inner">
+<pre><code><span class="c">// SetupROS():</span>
+ground_truth_cones_pub_ = node_->create_publisher&lt;ConeType&gt;(
+    <span class="s">"/plugin/"</span> + subnode_name_ + <span class="s">"/gt_cones"</span>, <span class="n">1</span>);
+perception_cones_pub_ = node_->create_publisher&lt;ConeType&gt;(     <span class="c">// line 34</span>
+    <span class="s">"/plugin/"</span> + subnode_name_ + <span class="s">"/cones"</span>, <span class="n">1</span>);
+...
+<span class="c">// elsewhere in the file (only publish call in the whole plugin):</span>
+ground_truth_cones_pub_->publish(translated_cones_msg);                 <span class="c">// line 196</span></code></pre>
+<div class="bugbox"><b>Upstream bug #2, confirmed by grep across the whole file</b>
+Two publishers are created — one for ground-truth cones, one supposedly for
+the "fused perception" cones. Searching the entire file for
+<code>perception_cones_pub_-&gt;publish</code> returns <strong>zero
+matches</strong> — the object exists, was assigned a topic name, and is
+simply never used to send anything. Only <code>ground_truth_cones_pub_</code>
+(remapped by the launch to <code>/cones/lenient</code>) ever actually
+publishes. This is exactly why <code>trackdrive_params.yaml</code> points
+<code>cones_topic</code> at <code>/cones/lenient</code> instead of the more
+naturally named <code>/cones</code>.</div>
+</div>
+</details>
+
+<details class="filecard">
+<summary>
+  <span class="path">eufs_sim2/src/plugin/twist_publisher.cpp</span>
+  <span class="loc">key lines shown</span>
+  <span class="side eufs">eufs</span>
+  <span class="purpose">why we never fuse /ros_can/twist into the EKF</span>
+</summary>
+<div class="inner">
+<pre><code>msg.twist.twist.linear.x = car_state[type::VehicleStateMember::_v_x];
+msg.twist.twist.linear.y = car_state[type::VehicleStateMember::_v_y];
+msg.twist.twist.angular.x = car_state[type::VehicleStateMember::_v_pitch];  <span class="c">// should be roll</span>
+msg.twist.twist.angular.y = car_state[type::VehicleStateMember::_v_yaw];    <span class="c">// should be pitch</span>
+msg.twist.twist.angular.z = car_state[type::VehicleStateMember::_v_roll];   <span class="c">// should be yaw!</span>
+
+msg.twist.covariance = { <span class="n">0,0,0,0,0,0,</span> <span class="n">0,0,0,0,0,0</span>, ... };  <span class="c">// all zero, always</span></code></pre>
+<div class="bugbox"><b>Upstream bug #3</b>
+By the standard ROS convention (roll=x, pitch=y, yaw=z), this assignment is
+shifted by one axis — the field that should carry yaw rate carries roll rate
+instead. Fusing this topic into the EKF as-is would feed steering-relevant
+yaw information from the wrong physical quantity entirely. Combined with the
+covariance always being hard-coded to zero (meaning "trust this
+completely"), this is precisely the topic an EKF should never be pointed at
+— which is why <code>wheel_odometry.py</code> exists to derive velocity from
+wheel speeds instead.</div>
+</div>
+</details>
+
+<details class="filecard">
+<summary>
+  <span class="path">eufs_sim2/src/state_machine.cpp + plugin/state_machine_plugin.cpp</span>
+  <span class="loc">key excerpts</span>
+  <span class="side eufs">eufs</span>
+  <span class="purpose">the authority model our mission gate depends on</span>
+</summary>
+<div class="inner">
+<pre><code><span class="c">// state_machine_plugin.cpp -- services our nodes/we call, never our code calling functions:</span>
+ebs_service_ = node_->create_service&lt;std_srvs::srv::Trigger&gt;(
+    <span class="s">"/ebs"</span>, ...SetEbs...);
+mission_service_ = node_->create_service&lt;eufs_msgs::srv::SetMission&gt;(
+    <span class="s">"/set_mission"</span>, ...SetMission...);
+go_service_ = node_->create_service&lt;std_srvs::srv::Trigger&gt;(
+    <span class="s">"/go"</span>, ...SetGo...);
+
+<span class="c">// state_machine.cpp -- the transition logic:</span>
+<span class="k">if</span> (ebs_active_) {
+    as_state_ = ASState::EMERGENCY_BRAKE;
+    timer_EBS_ = time;
+} <span class="k">else</span> <span class="k">if</span> (go_) {
+    ... <span class="c">// -> DRIVING</span>
+}
+...
+<span class="k">case</span> ASState::EMERGENCY_BRAKE:
+    <span class="k">if</span> (time::HasTimeElapsed(time, timer_EBS_, 15s)) {
+        <span class="k">return</span> ResetState();
+    }</code></pre>
+<p>This is the whole authority chain from the field guide §3, in the sim's
+own words: three services (<code>/ebs</code>, <code>/set_mission</code>,
+<code>/go</code>), and a state machine where <code>ebs_active_</code> always
+wins over everything else — checked <em>before</em> the
+<code>go_</code> flag, every single tick. Once tripped, the sim holds
+<code>EMERGENCY_BRAKE</code> for a fixed 15 seconds before it will consider
+resetting. Every controller's mission gate (Part II) is built to be
+downstream of exactly this logic.</p>
+</div>
+</details>
+
+<details class="filecard">
+<summary>
+  <span class="path">plugin_params.yaml (sensor config, edited by us — the one sim file we do touch)</span>
+  <span class="loc">excerpt</span>
+  <span class="side eufs">eufs, locally patched</span>
+  <span class="purpose">how "realistic sensor noise" got into the simulator</span>
+</summary>
+<div class="inner">
+<pre><code>imu_plugin:
+  angular_velocity_drift_vector: [<span class="n">0.0</span>, <span class="n">0.0</span>, <span class="n">0.00001</span>]   <span class="c"># yaw-rate bias ramp</span>
+  noise_covariance: [
+    <span class="n">0.0001</span>, ... ,     <span class="c"># gyro: was 1.0 (identity) -- ~100x too noisy before</span>
+    <span class="n">0.0025</span>, ... ,     <span class="c"># accel</span>
+  ]</code></pre>
+<p>The one deliberate edit we made to simulator source rather than working
+around: the original config gave every IMU axis a noise variance of exactly
+<code>1.0</code> — mathematically convenient (an identity matrix) but
+physically absurd, about a hundred times noisier than any real automotive
+IMU. We replaced it with BMI088-class values (a real, common automotive-grade
+IMU chip's published noise specs) so the EKF experiment would be fusing
+plausibly realistic sensor data rather than either "perfect" or "cartoonishly
+bad" numbers.</p>
+</div>
+</details>
+
+<details class="quiz"><summary>If you don't touch eufs_sim2's own logic, how did you find these bugs?</summary>
+<div class="body">By reading the source, not by black-box testing alone —
+the audit phase of the project. Each bug also had a concrete symptom that
+led us there: bug #1 was found because the car wouldn't brake as commanded;
+bug #2 because trackdrive received no cones on the topic its name implied it
+should use; bug #3 during the EKF's input reconnaissance, specifically
+checking every candidate sensor topic before wiring it in. Reading the
+simulator's source to find defects is itself part of the project's
+technical-understanding evidence.</div></details>
+
+<!-- ============================================================ -->
+<h2 id="prep"><span class="part-label">Part IX</span><span class="no">·</span>Presentation prep — mapped to the coordinator's email</h2>
+
+<p>The email asks for seven specific things. Below, each one is addressed
+directly, using material from Parts I–VIII and the other two docs in
+<code>docs/</code>.</p>
+
+<div class="rubric-item">
+<h3>1 · Project progress achieved since the previous review</h3>
+<p class="req">"Progress achieved since the previous review"</p>
+<ul>
+<li>Pivoted from a hardware-first plan to a sim-first development platform —
+the thesis in field guide §1 and handoff §1.</li>
+<li>All four mission controllers implemented and closed-loop verified
+(Part II here; numbers in the cheat sheet below).</li>
+<li>A full software-in-the-loop test infrastructure built from scratch — the
+harnesses (Part IV), a Monte-Carlo batch runner (Part VII), and error models
+for both perception and state estimation.</li>
+<li>A complete state-estimation subsystem added: a real EKF integrated,
+measured against ground truth, and validated in closed loop (Part III,
+field guide §10).</li>
+<li>Four upstream bugs found and documented in the simulator, two bugs found
+and fixed in our own code by our own test infrastructure (Part VIII, field
+guide §12).</li>
+</ul>
+</div>
+
+<div class="rubric-item">
+<h3>2 · Individual contribution of each team member</h3>
+<p class="req">"Every team member must be present and prepared to explain their individual contribution."</p>
+<div class="fillin"><b>Left for you to fill in</b> — every git commit in this
+repo is under one identity, so an accurate three-way split has to come from
+you. Suggested slide structure: one row per person, columns for "subsystem
+owned," "one thing they can defend line-by-line if asked," and "one number
+they can quote." Part II–VII above is organized by subsystem specifically so
+each of you can adopt one or two file-cards as "mine to know cold."</div>
+</div>
+
+<div class="rubric-item">
+<h3>3 · Technical understanding and implementation status</h3>
+<p class="req">"Technical understanding and implementation status"</p>
+<p>This entire document <em>is</em> the technical-understanding evidence —
+Parts II–VIII walk every file with the reasoning behind each design
+decision, not just what the code does. For the "implementation status" half,
+use this table:</p>
+<div class="tablewrap"><table>
+<tr><th>Subsystem</th><th>Status</th></tr>
+<tr><td>Sim environment + tooling</td><td class="g">done</td></tr>
+<tr><td>4 mission controllers</td><td class="g">done, closed-loop verified</td></tr>
+<tr><td>SIL harnesses (all 3 missions)</td><td class="g">done</td></tr>
+<tr><td>Monte-Carlo sweep infrastructure</td><td class="g">done, generalized to all 3 missions</td></tr>
+<tr><td>YOLO perception model (FSOCO)</td><td class="g">trained (P 0.90 / R 0.64 / mAP50 0.736)</td></tr>
+<tr><td>Perception error-profile extraction</td><td class="w">script built, one run pending (needs the dataset machine)</td></tr>
+<tr><td>State estimation (EKF)</td><td class="g">done — built, measured, validated in closed loop</td></tr>
+<tr><td>Model-fidelity prediction test</td><td class="g">done — mean validated to 0.01 m</td></tr>
+<tr><td>CI regression suite</td><td class="w">not started — machinery it depends on is ready</td></tr>
+<tr><td>Interface contract document</td><td class="w">not started — content exists, needs writing up</td></tr>
+<tr><td>Jetson deployment</td><td class="b">not started — procurement is the blocker</td></tr>
+</table></div>
+</div>
+
+<div class="rubric-item">
+<h3>4 · Work completed as per planned milestones</h3>
+<p class="req">"Work completed as per the planned milestones"</p>
+<p>Open <code>docs/sem7-gantt.html</code> side by side with this. The honest
+framing: measured against that 12-week plan, the team is running roughly
+three weeks ahead — work presented as landing in weeks 3–6 was substantially
+complete by week 2–3 in reality, and the EKF thread (not on the original
+Gantt at all) was added as a scope expansion once the schedule allowed it.</p>
+</div>
+
+<div class="rubric-item">
+<h3>5 · Current results/prototype/demo</h3>
+<p class="req">"Current results/prototype/demo, wherever applicable"</p>
+<p>Live-demo options, cheapest first:</p>
+<ol>
+<li><strong>Full sim + Foxglove</strong> — <code>eufs sim run</code>, then
+<code>ros2 launch fs_autonomy autonomy.launch.py</code>, select a mission,
+GO. Add <code>realistic:=true</code> to show the EKF-driven version.</li>
+<li><strong>The drift demo</strong> — plot <code>/odom</code> and
+<code>/odometry/filtered</code> together in Foxglove and watch them diverge
+live — visually self-explanatory, needs no narration.</li>
+<li><strong>A live Monte-Carlo sweep</strong> — run a small
+<code>run_sweeps.py</code> call during the talk and show the pass/fail lines
+printing in real time, then the resulting plot.</li>
+</ol>
+<p>Numbers to have on a slide (all verified, sourced in Parts II–VII and the
+handoff doc):</p>
+<div class="tablewrap"><table>
+<tr><td>Accel</td><td>holds 8 m/s, brakes at 75 m, stops ~84 m (matches v²/2a physics)</td></tr>
+<tr><td>Skidpad</td><td>5 cm max radial error (SIL); 0.204 m in full sim (first full-sim validation)</td></tr>
+<tr><td>Trackdrive</td><td>3/3 laps, 10 cm max deviation, 0 cones hit</td></tr>
+<tr><td>EKF measured</td><td>2.4% position drift per metre traveled, 2.5° heading error</td></tr>
+<tr><td>Prediction test</td><td>predicted mean error 0.32 m, measured 0.33 m</td></tr>
+</table></div>
+</div>
+
+<div class="rubric-item">
+<h3>6 · Challenges/issues faced and corrective actions taken</h3>
+<p class="req">"Challenges/issues faced and corrective actions taken"</p>
+<p>This is where the six-bugs table (field guide §12, Part VIII here) is
+worth its weight — it's a direct, honest answer with concrete corrective
+actions attached to each:</p>
+<div class="tablewrap"><table>
+<tr><th>Challenge</th><th>Corrective action</th></tr>
+<tr><td>Car wouldn't respond to a target speed</td><td>read control.cpp, found only accel+steer are consumed; switched to closed-loop P-control</td></tr>
+<tr><td>Trackdrive received no cones</td><td>read cone_fusion.cpp, found the fused publisher is never called; switched configs to /cones/lenient</td></tr>
+<tr><td>EKF input had to be chosen carefully</td><td>audited every candidate sensor topic before wiring any in; found scrambled axes on /ros_can/twist, avoided it</td></tr>
+<tr><td>Blind car crept 335 m off track in a sweep</td><td>root-caused to a stale-message vs. stale-target timing bug; fixed and re-verified</td></tr>
+<tr><td>Skidpad "prediction" mismatched by an odd amount</td><td>found our own scoring bug (drifted exit leg mis-attributed); fixed the metric in two files</td></tr>
+<tr><td>No GPU on the dev VM</td><td>designed SIL harnesses to be object-level, not image-level — thousands of runs on CPU alone</td></tr>
+</table></div>
+</div>
+
+<div class="rubric-item">
+<h3>7 · Work planned for the next phase (+ updated Gantt)</h3>
+<p class="req">"Work planned for the next phase, preferably supported by the updated Gantt chart"</p>
+<p>Straight from <code>docs/PROJECT_HANDOFF.md</code> §5.1, in order:</p>
+<ol>
+<li>Run the pending YOLO error-profile extraction, push the result</li>
+<li>Add a bias-ramp drift mode to the odometry error model (the one open
+gap from the prediction test)</li>
+<li>Big-orange lap counting for trackdrive (removes its last odometry
+dependency)</li>
+<li>Scripted EKF Q-tuning against ground truth</li>
+<li>Full Monte-Carlo campaign for the report's results chapter</li>
+<li>CI regression suite</li>
+<li>Interface contract document</li>
+<li>Jetson procurement + deployment + benchmarks</li>
+<li>Upstream merge requests for the four bugs found</li>
+</ol>
+<p><strong>Updated Gantt:</strong> the existing <code>docs/sem7-gantt.html</code>
+covers the original 12 weeks. Since actual progress ran ahead of it and the
+EKF thread wasn't originally on it, regenerate it before this presentation to
+show items 1–9 above filling the remaining weeks — ask for that as a
+follow-up if you want it rebuilt now.</p>
+</div>
+
+<p class="meta" style="margin-top:44px">Companion documents:
+<code>docs/platform_field_guide.html</code> (concepts, "say it like this"
+phrasing, quiz cards) · <code>docs/PROJECT_HANDOFF.md</code> (strategy,
+full results log, future ideas) · <code>docs/sem7-gantt.html</code> (the
+plan as presented).</p>
+
+</div></main>
+</div>
+
+<script>
+(function () {
+  var kw = /\b(def|class|return|if|elif|else|for|while|in|not|and|or|import|from|as|None|True|False|self|try|except|finally|raise|with|lambda|pass|break|continue)\b/g;
+  document.querySelectorAll("pre code").forEach(function (el) {
+    if (el.querySelector("span")) return; // already hand-marked (C++ blocks)
+    var h = el.innerHTML;
+    h = h.replace(/(#[^\n<]*)/g, '<span class="c">$1</span>');
+    h = h.replace(/("(?:[^"\\\n]|\\.)*")/g, '<span class="s">$1</span>');
+    h = h.replace(kw, '<span class="k">$1</span>');
+    h = h.replace(/\b(\d+\.?\d*)\b/g, '<span class="n">$1</span>');
+    h = h.replace(/\b([a-zA-Z_][a-zA-Z0-9_]*)\(/g, '<span class="f">$1</span>(');
+    el.innerHTML = h;
+  });
+
+  var links = Array.prototype.slice.call(document.querySelectorAll("#toc a"));
+  var heads = links.map(function (a) { return document.getElementById(a.getAttribute("href").slice(1)); });
+  function onScroll() {
+    var y = window.scrollY + 90, active = 0;
+    heads.forEach(function (h, i) { if (h && h.offsetTop <= y) active = i; });
+    links.forEach(function (a, i) { a.classList.toggle("active", i === active); });
+  }
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+})();
+</script>
