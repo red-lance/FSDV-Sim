@@ -200,7 +200,6 @@ def main():
                for combo in (itertools.product(*sweeps) if sweeps else [()])]
     swept_keys = [s[0][0] for s in sweeps]
 
-    env = dict(os.environ, ROS_DOMAIN_ID=str(args.domain))
     cols = (sorted(set(k for c in configs for k in c)) + ["seed"]
             + mission["metrics"] + ["success"])
 
@@ -214,6 +213,13 @@ def main():
             passes = 0
             for ep in range(args.episodes):
                 seed = args.seed_base + ep
+                # rotate the domain per episode -- back-to-back episodes on
+                # one fixed domain can see a prior episode's DDS discovery
+                # state linger under load, producing flaky (not seed-
+                # reproducible) results. 8 domains is far more than enough
+                # separation between any two temporally-adjacent episodes.
+                domain = args.domain + (done % 8)
+                env = dict(os.environ, ROS_DOMAIN_ID=str(domain))
                 r = run_episode(mission, cfg, seed, args, env)
                 done += 1
                 row = dict(cfg, seed=seed)

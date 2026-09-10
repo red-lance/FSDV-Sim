@@ -11,8 +11,9 @@ autocross_driver:
     half_track: 1.75
     cone_timeout: 0.5
     blind_stop_time: 2.0
-    lap_arm_distance: 10.0
-    lap_close_distance: 4.0
+    gate_range: 6.0
+    gate_cooldown: 8.0
+    gate_reset_time: 3.0
     accel_limit: 3.0
     brake_limit: 4.0
     kp: 1.5

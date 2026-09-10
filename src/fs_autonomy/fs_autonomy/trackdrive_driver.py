@@ -12,9 +12,16 @@ pure-pursuit toward the pair's midpoint. If only one side is visible the
 target is offset half a track width from it; if nothing is visible we slow
 down and hold the last steering (and stop if blind for too long).
 
-Odometry is used only for lap counting (leave the start area, come back) and
-speed feedback -- never for path geometry. Laps default to 10 (TRACK_DRIVE);
-run the same executable with mission:=AUTOCROSS laps:=1 for autocross.
+Odometry is used only for speed feedback -- never for path geometry, and (as
+of this version) never for lap counting either. Laps are counted from the
+big-orange start/finish gate cones: seeing both gate cones within gate_range
+counts a pass, debounced by gate_cooldown so the initial sighting at the
+start line and re-triggering mid-pass don't double count. This removes
+trackdrive's last dependency on odometry -- a controller that steers AND
+counts laps purely from perception is immune to position drift entirely
+(earlier odom-based counting produced phantom laps under sustained drift;
+see docs/PROJECT_HANDOFF.md). Laps default to 10 (TRACK_DRIVE); run the same
+executable with mission:=AUTOCROSS laps:=1 for autocross.
 
 Speed scales down with commanded steering: fast on straights, slow in
 corners. Same P-on-speed-error acceleration law as the other controllers
@@ -68,8 +75,9 @@ class TrackdriveDriver(Node):
         self.declare_parameter("half_track", 1.75)       # m, offset when only one side is visible
         self.declare_parameter("cone_timeout", 0.5)      # s without cones -> slow + hold steering
         self.declare_parameter("blind_stop_time", 2.0)   # s without cones -> brake to a stop
-        self.declare_parameter("lap_arm_distance", 10.0)  # m from start to arm the lap counter
-        self.declare_parameter("lap_close_distance", 4.0)  # m from start to count a lap
+        self.declare_parameter("gate_range", 6.0)        # m, max range to recognize the start/finish gate
+        self.declare_parameter("gate_cooldown", 8.0)     # s, min time between gate counts (debounce)
+        self.declare_parameter("gate_reset_time", 3.0)   # s, sustained absence needed to re-arm the gate
         self.declare_parameter("accel_limit", 3.0)
         self.declare_parameter("brake_limit", 4.0)
         self.declare_parameter("kp", 1.5)
@@ -89,8 +97,9 @@ class TrackdriveDriver(Node):
         self.half_track = p("half_track").value
         self.cone_timeout = p("cone_timeout").value
         self.blind_stop_time = p("blind_stop_time").value
-        self.lap_arm_distance = p("lap_arm_distance").value
-        self.lap_close_distance = p("lap_close_distance").value
+        self.gate_range = p("gate_range").value
+        self.gate_cooldown = p("gate_cooldown").value
+        self.gate_reset_time = p("gate_reset_time").value
         self.accel_limit = p("accel_limit").value
         self.brake_limit = p("brake_limit").value
         self.kp = p("kp").value
@@ -104,7 +113,9 @@ class TrackdriveDriver(Node):
         self.speed = 0.0
         self.start_xy = None
         self.laps = 0
-        self.lap_armed = False
+        self.gate_seen = False    # is the start/finish gate currently believed in view?
+        self.gate_lost_since = None  # rclpy Time gate_near first went False, or None
+        self.last_gate_time = None  # rclpy Time of the last ACCEPTED gate count
         self.finished = False
         self.stopped = False
         self.cones_msg = None
@@ -140,7 +151,11 @@ class TrackdriveDriver(Node):
         if driving and not self.driving:
             self.start_xy = self.position
             self.laps = 0
-            self.lap_armed = False
+            self.gate_seen = False
+            self.gate_lost_since = None
+            # start the cooldown clock now -- we spawn right at the gate, so
+            # the immediate sighting must NOT count as having completed a lap
+            self.last_gate_time = self.get_clock().now()
             self.finished = False
             self.stopped = False
             self.last_steer = 0.0
@@ -151,26 +166,69 @@ class TrackdriveDriver(Node):
         self.driving = driving
 
     def on_odom(self, msg):
+        # speed feedback for the P-controller only -- NOT used for lap
+        # counting or path geometry (see check_gate() for how laps count)
         pos = msg.pose.pose.position
         self.position = (pos.x, pos.y)
         self.speed = msg.twist.twist.linear.x
 
-        if self.start_xy is None or self.finished:
-            return
-        dist = math.hypot(pos.x - self.start_xy[0], pos.y - self.start_xy[1])
-        if not self.lap_armed and dist > self.lap_arm_distance:
-            self.lap_armed = True
-        elif self.lap_armed and dist < self.lap_close_distance:
-            self.lap_armed = False
-            self.laps += 1
-            self.get_logger().info("Lap %d/%d." % (self.laps, self.laps_total))
-            if self.laps >= self.laps_total:
-                self.finished = True
-                self.get_logger().info("All laps done (v=%.1f m/s) -- braking." % self.speed)
-
     def on_cones(self, msg):
         self.cones_msg = msg
         self.cones_rx_time = self.get_clock().now()
+        if self.driving and not self.finished:
+            self.check_gate(msg)
+
+    def check_gate(self, msg):
+        """Perception-based lap counting via the big-orange start/finish gate.
+
+        Counts a lap on the RISING EDGE of "both gate cones visible within
+        gate_range" -- i.e. the moment the gate comes into view, once per
+        approach. Debounced two ways, both wall-clock (never distance or
+        position, so this has no odometry dependency at all -- unlike the
+        distance-based counter it replaces, it cannot produce phantom laps
+        under position drift; see the EKF experiment in the handoff doc):
+        gate_cooldown gates whether a rising edge is far enough in time from
+        the last ACCEPTED count to be a new lap rather than the same pass;
+        gate_reset_time requires the gate to be continuously undetected for
+        a sustained span before "not seen" is believed at all, so a single
+        dropped frame mid-pass under heavy detection dropout can't look like
+        the gate leaving and reappearing within one physical crossing.
+        """
+        left_gate = right_gate = None
+        for cone in msg.cones:
+            if classify(cone) != "big_orange":
+                continue
+            x, y = cone.point.x, cone.point.y
+            r = math.hypot(x, y)
+            if x < 0.2 or r > self.gate_range:
+                continue
+            if y > 0.0:
+                left_gate = r if left_gate is None else min(left_gate, r)
+            else:
+                right_gate = r if right_gate is None else min(right_gate, r)
+
+        gate_near = left_gate is not None and right_gate is not None
+        now = self.get_clock().now()
+
+        if gate_near:
+            self.gate_lost_since = None  # any positive sighting cancels a pending reset
+            if not self.gate_seen:
+                self.gate_seen = True
+                elapsed = (float("inf") if self.last_gate_time is None else
+                           (now - self.last_gate_time).nanoseconds * 1e-9)
+                if elapsed >= self.gate_cooldown:
+                    self.last_gate_time = now
+                    self.laps += 1
+                    self.get_logger().info("Gate crossed -- lap %d/%d." % (self.laps, self.laps_total))
+                    if self.laps >= self.laps_total:
+                        self.finished = True
+                        self.get_logger().info("All laps done (v=%.1f m/s) -- braking." % self.speed)
+        elif self.gate_seen:
+            if self.gate_lost_since is None:
+                self.gate_lost_since = now
+            elif (now - self.gate_lost_since).nanoseconds * 1e-9 >= self.gate_reset_time:
+                self.gate_seen = False  # sustained absence -- ready to re-arm
+                self.gate_lost_since = None
 
     # -------------------------------------------------------------- steering
 

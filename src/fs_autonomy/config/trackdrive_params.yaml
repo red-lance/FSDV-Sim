@@ -10,8 +10,9 @@ trackdrive_driver:
     half_track: 1.75         # m, offset when only one side is visible
     cone_timeout: 0.5        # s without cones -> slow + hold steering
     blind_stop_time: 2.0     # s without cones -> brake to a stop
-    lap_arm_distance: 10.0   # m from start to arm the lap counter
-    lap_close_distance: 4.0  # m from start to count a lap
+    gate_range: 6.0          # m, max range to recognize the start/finish gate
+    gate_cooldown: 8.0       # s, min time between gate counts (debounce)
+    gate_reset_time: 3.0     # s, sustained absence needed to re-arm the gate
     accel_limit: 3.0
     brake_limit: 4.0
     kp: 1.5

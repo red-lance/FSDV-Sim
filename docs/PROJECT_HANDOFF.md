@@ -92,7 +92,7 @@ Docker: `docker/Dockerfile`, multi-arch (x86 VM / arm64 Jetson).
 | skidpad ON EKF, full sim | 0.33/0.69 m mean/max — mission completes, inside 1.5 m half-lane |
 | **Prediction test** | SIL curve + dynamics offset predicted mean 0.32, measured 0.33 (±0.01!). Max underpredicted 2× — real drift is a bias RAMP, SIL knob is white random walk. Fidelity confirmed on mean; discrepancy explained + fix identified. |
 | Perception dropout finding | uniform dropout nearly harmless (passes at 5% detection — frames integrate); binding constraints are range-concentrated misses, color flips, FPs, latency |
-| Drift asymmetry finding | trackdrive steering immune to odom drift (perception-anchored) but lap counting breaks (phantom laps); skidpad error grows monotonically: 0.054/0.199/0.380/0.558 m max at 0/2/4/6 °/√min |
+| Drift asymmetry finding | trackdrive steering immune to odom drift (perception-anchored); lap counting *used to* break under drift (phantom laps) — fixed 2026-09-10 by switching to gate-cone-based counting (§5.1 item 3), now zero odom dependency; skidpad error grows monotonically: 0.054/0.199/0.380/0.558 m max at 0/2/4/6 °/√min |
 
 Bugs found by the platform (the thesis working):
 1. UPSTREAM: `/cmd` consumes ONLY drive.acceleration+steering_angle;
@@ -146,10 +146,40 @@ Bugs found by the platform (the thesis working):
    real EKF drift is time-correlated, not white; add
    `odom_yaw_bias_ramp_deg_per_s2` and re-derive the skidpad curve. Closes
    the one open fidelity gap.
-3. **Big-orange lap counter for trackdrive** — lap counting is its only odom
-   dependency and breaks under drift (phantom laps). Count start/finish
-   passes from big_orange cone-pair detections instead → fully
-   perception-anchored controller → unblocks realistic-by-default.
+3. **Big-orange lap counter for trackdrive** — DONE 2026-09-10.
+   `check_gate()` in trackdrive_driver.py replaces the distance-based lap
+   counter: counts a lap on the rising edge of "both gate cones (one each
+   side) visible within gate_range," debounced two ways, both wall-clock
+   only (never distance/position): `gate_cooldown` (8s default) rejects a
+   new rising edge too soon after the last ACCEPTED count (so the initial
+   sighting at the start line doesn't count); `gate_reset_time` (3s default)
+   requires sustained absence before re-arming, so a single dropped cone
+   frame mid-pass under heavy detection dropout can't look like two passes.
+   trackdrive now has ZERO odom dependency for mission logic (odom used only
+   for /cmd speed feedback) — unblocks realistic-by-default (item 10).
+   sil_trackdrive.py gained a big-orange gate pair on its synthetic track
+   (the real small_track.csv already had one; the SIL track didn't) —
+   gate cones go through the same detect/noise error model as blue/yellow
+   (not the color-flip model — binary confusion has no meaning for a third
+   color), so the perception-based lap counter is exercised by the same
+   sweeps as steering.
+   Verified in isolated single-episode tests: baseline (2/2), heavy odom
+   drift 6 m/√min alone (was: phantom laps; now: exact laps=3, confirming
+   the drift-vulnerability is gone), detection dropout down to 20% (found +
+   fixed a real double-count edge case via the gate_reset_time dwell, see
+   above), and drift+dropout combined.
+   CAVEAT — found while stress-testing this: `run_sweeps.py`, run as a long
+   sequential batch (8–9 episodes back to back) on this VM, shows
+   intermittent flaky results (wrong lap counts / stalled episodes) not
+   reproducible when the same seed+params are run in isolation. Root cause:
+   DDS discovery state lingering between back-to-back subprocess episodes
+   under CPU contention (2-core VM) — NOT a defect in the gate counter or
+   controller logic. Partially mitigated: `run_sweeps.py` now rotates
+   `ROS_DOMAIN_ID` per episode (was one fixed domain for a whole batch) —
+   measurably fewer flaky episodes on a 9-episode stress-test batch, but
+   not zero. Full elimination (e.g. a longer settle delay, or verifying the previous
+   episode's processes are fully reaped before the next spawns) is a
+   separate backlog item — see §5.2.
 4. **EKF Q-tuning grid search** — scripted: sweep Q diagonals, score RMSE vs
    ground truth per run, keep the best ("the sim auto-tunes our estimator").
    Also try fusing the OSS optical speed sensor (publishes with covariance).
@@ -195,6 +225,14 @@ Bugs found by the platform (the thesis working):
   noise density + bias instability → into imu_frontend AND sim imu_plugin
   covariance → re-measure EKF → re-calibrate knobs. The sim then carries the
   real part's fingerprint before the car exists.
+- **run_sweeps.py batch reliability** (found 2026-09-10): long sequential
+  batches (8–9 episodes) show intermittent flaky results not reproducible
+  in isolation — DDS discovery residue under CPU contention on this 2-core
+  VM. Per-episode domain rotation (done) measurably helped but didn't zero
+  it out. Try: a longer settle delay before the harness starts publishing,
+  or explicitly poll that the previous episode's PIDs are gone before
+  spawning the next, before trusting any large (`--episodes 20+`) campaign's
+  results at face value.
 
 ### 5.3 Perception track (Phases; 0+1 mostly done)
 - Phase 1 remainder: extraction run (item 5.1.1). Range axis is approximate

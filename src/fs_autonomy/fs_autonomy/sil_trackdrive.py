@@ -2,10 +2,16 @@
 """Closed-loop test harness for trackdrive_driver, replacing the full sim.
 
 Builds a deterministic closed circuit (wobbly ellipse, ~92 m lap, blue cones
-on the left edge, yellow on the right, 3.5 m track width), spawns a kinematic
-bicycle on it, and emulates a cone sensor: detections are published in the
-CAR frame at ~16 Hz, limited to a configurable FoV and range -- the driver
-under test never sees the map.
+on the left edge, yellow on the right, 3.5 m track width, one big-orange
+start/finish gate pair straddling the start point -- matching real FS maps),
+spawns a kinematic bicycle on it, and emulates a cone sensor: detections are
+published in the CAR frame at ~16 Hz, limited to a configurable FoV and range
+-- the driver under test never sees the map.
+
+The gate cones go through the same detection/noise model as blue/yellow (but
+not the color-flip model -- that's a binary blue<->yellow confusion with no
+meaning for a third color), so trackdrive_driver's perception-based lap
+counter is exercised by the same Monte-Carlo sweeps as its steering.
 
 The sensor has a parameterized ERROR MODEL so a real perception stack's
 measured behaviour can be replayed against the controller (Monte-Carlo
@@ -104,7 +110,22 @@ def build_track():
             lx, ly = -ty, tx  # left of travel
             blue.append((x0 + HALF_TRACK * lx, y0 + HALF_TRACK * ly))
             yellow.append((x0 - HALF_TRACK * lx, y0 - HALF_TRACK * ly))
-    return center, blue, yellow
+
+    # big-orange start/finish gate, straddling the track at sample 0 -- real
+    # FS maps (e.g. small_track.csv) mark the line this way; the SIL track
+    # had none, so lap counting from gate cones (trackdrive_driver.py) had
+    # nothing to detect. One pair, same lateral offset as the blue/yellow
+    # edges, oriented along the tangent at the start point.
+    gx0, gy0 = center[0]
+    gx1, gy1 = center[1]
+    gseg = math.hypot(gx1 - gx0, gy1 - gy0)
+    gtx, gty = (gx1 - gx0) / gseg, (gy1 - gy0) / gseg
+    glx, gly = -gty, gtx
+    gate = [
+        (gx0 + HALF_TRACK * glx, gy0 + HALF_TRACK * gly),
+        (gx0 - HALF_TRACK * glx, gy0 - HALF_TRACK * gly),
+    ]
+    return center, blue, yellow, gate
 
 
 def load_profile(path):
@@ -139,7 +160,7 @@ def load_profile(path):
 class SilTrackdrive(Node):
     def __init__(self):
         super().__init__("sil_trackdrive")
-        self.center, self.blue, self.yellow = build_track()
+        self.center, self.blue, self.yellow, self.gate = build_track()
 
         self.declare_parameter("seed", 0)
         self.declare_parameter("profile_json", "")
@@ -251,7 +272,8 @@ class SilTrackdrive(Node):
         """One sensor frame through the error model: [(bx, by, color), ...]."""
         dets = []
         c, s = math.cos(-self.yaw), math.sin(-self.yaw)
-        for cones, color in ((self.blue, "blue"), (self.yellow, "yellow")):
+        sources = ((self.blue, "blue"), (self.yellow, "yellow"), (self.gate, "big_orange"))
+        for cones, color in sources:
             for cx, cy in cones:
                 dx, dy = cx - self.x, cy - self.y
                 bx, by = c * dx - s * dy, s * dx + c * dy
@@ -267,7 +289,9 @@ class SilTrackdrive(Node):
                 if b_sig > 0.0:
                     th += math.radians(self.rng.gauss(0.0, b_sig))
                 col = color
-                if flip > 0.0 and self.rng.random() < flip:
+                # the flip model is a binary blue<->yellow confusion; it has
+                # no meaning for the (distinctly-shaped) big-orange gate cones
+                if flip > 0.0 and color != "big_orange" and self.rng.random() < flip:
                     col = "yellow" if color == "blue" else "blue"
                 dets.append((r * math.cos(th), r * math.sin(th), col))
 
@@ -292,8 +316,10 @@ class SilTrackdrive(Node):
             cone.point.x, cone.point.y = bx, by
             if col == "blue":
                 cone.blue_prob = 1.0
-            else:
+            elif col == "yellow":
                 cone.yellow_prob = 1.0
+            else:
+                cone.big_orange_prob = 1.0
             out.cones.append(cone)
         self.cone_pub.publish(out)
 
@@ -315,7 +341,7 @@ class SilTrackdrive(Node):
             self.dev_sum += dev
             self.dev_max = max(self.dev_max, dev)
             self.dev_n += 1
-            for idx, (cx, cy) in enumerate(self.blue + self.yellow):
+            for idx, (cx, cy) in enumerate(self.blue + self.yellow + self.gate):
                 if math.hypot(self.x - cx, self.y - cy) < 0.5:
                     self.hit.add(idx)
 
