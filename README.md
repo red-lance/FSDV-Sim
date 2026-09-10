@@ -1,6 +1,6 @@
 # autonomy_ws
 
-Formula Student autonomy workspace. Holds our own code only — the eufs_sim2
+Formula Student autonomy workspace. Holds our own code only - the eufs_sim2
 simulator lives in its own workspace (`~/eufs`) and is **never** a build
 dependency of anything here. The two workspaces meet only over ROS topics at
 runtime, plus one pure message package (`eufs_msgs`).
