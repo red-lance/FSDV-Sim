@@ -30,7 +30,7 @@
     font-family: "Segoe UI", "Helvetica Neue", Arial, system-ui, sans-serif;
     margin: 0; padding: 30px 26px 44px;
   }
-  .sheet { max-width: 1280px; margin: 0 auto; }
+  .sheet { max-width: 1500px; margin: 0 auto; }
 
   h1 {
     text-align: center; color: var(--title);
@@ -48,14 +48,14 @@
   .gantt-wrap { overflow-x: auto; }
   table {
     border-collapse: collapse; table-layout: fixed;
-    width: 1300px; font-size: 12px;
+    width: 1440px; font-size: 11.3px;
   }
-  col.task { width: 320px; }
-  col.wk { width: 70px; }
+  col.task { width: 350px; }
+  col.wk { width: 60px; }
 
   thead th {
     background: var(--head-bg); color: var(--head-ink);
-    font-weight: 700; padding: 6px 4px; text-align: center;
+    font-weight: 700; padding: 6px 3px; text-align: center;
     border: 1px solid var(--rule);
     font-variant-numeric: tabular-nums;
   }
@@ -64,10 +64,12 @@
   tbody th, tbody td { border: 1px solid var(--rule); }
   tbody th.task {
     text-align: left; font-weight: 400; color: var(--ink);
-    padding: 6px 9px; line-height: 1.32; background: var(--paper);
+    padding: 5px 8px; line-height: 1.28; background: var(--paper);
   }
-  tbody td { height: 38px; background: var(--paper); }
+  tbody td { height: 34px; background: var(--paper); }
   tbody td.f { background: var(--fill); }
+
+  tr.demo th.task { color: var(--title); font-weight: 700; }
 
   @media print {
     body { padding: 8px; }
@@ -78,7 +80,7 @@
 
 <div class="sheet">
   <h1>Autonomous Vehicle using LiDAR and Depth Camera</h1>
-  <p class="subtitle">Revised 14-Week Project Plan — K. J. Somaiya School of Engineering</p>
+  <p class="subtitle">Revised 18-Week Project Plan — K. J. Somaiya School of Engineering</p>
   <p class="meta"><b>Team:</b> Rishi Satish, Harshvardhan Singh, Ayon Majumdar</p>
   <p class="meta"><b>Faculty Guide:</b> Dr. Makarand Govind Kulkarni</p>
 
@@ -88,84 +90,98 @@
       <col class="task">
       <col class="wk"><col class="wk"><col class="wk"><col class="wk"><col class="wk"><col class="wk">
       <col class="wk"><col class="wk"><col class="wk"><col class="wk"><col class="wk"><col class="wk">
-      <col class="wk"><col class="wk">
+      <col class="wk"><col class="wk"><col class="wk"><col class="wk"><col class="wk">
     </colgroup>
     <thead>
       <tr>
         <th class="task-h">Task</th>
         <th>W1</th><th>W2</th><th>W3</th><th>W4</th><th>W5</th><th>W6</th>
         <th>W7</th><th>W8</th><th>W9</th><th>W10</th><th>W11</th><th>W12</th>
-        <th>W13</th><th>W14</th>
+        <th>W13</th><th>W14</th><th>W15</th><th>W16</th><th>W17</th><th>W18</th>
       </tr>
     </thead>
     <tbody>
       <tr>
         <th class="task">Simulation environment bring-up: eufs_sim2 + Foxglove toolchain on Ubuntu 22.04 / ROS 2 Humble; visualization &amp; startup diagnostics</th>
-        <td class="f"></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+        <td class="f"></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
       </tr>
       <tr>
         <th class="task">Audit eufs_sim2 architecture — control input path, cone pipeline, VCU state machine (deliverable: interface audit doc)</th>
-        <td class="f"></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+        <td class="f"></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
       </tr>
+
+      <tr class="demo">
+        <th class="task">★ Monthly Review Demo — ACCELERATION event: closed-loop straight-line sprint, brake at 75&nbsp;m (August review)</th>
+        <td></td><td></td><td></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+      </tr>
+      <tr class="demo">
+        <th class="task">★ Monthly Review Demo — SKIDPAD event: closed-loop figure-8 (this review, September)</th>
+        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+      </tr>
+      <tr class="demo">
+        <th class="task">★ Monthly Review Demo — AUTOCROSS event: single-lap perception-driven run (October review)</th>
+        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td><td></td>
+      </tr>
+      <tr class="demo">
+        <th class="task">★ Monthly Review Demo — TRACK_DRIVE event: full endurance run, perception-based lap counting (November review)</th>
+        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="f"></td><td></td><td></td>
+      </tr>
+
       <tr>
         <th class="task">Design fs_autonomy workspace: topic contracts, sim-containment rules, mission-gated launch orchestration</th>
-        <td></td><td class="f"></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+        <td></td><td class="f"></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
       </tr>
       <tr>
         <th class="task">Odometry-based mission controllers: ACCELERATION (closed-loop speed) and SKIDPAD (figure-8 pure pursuit)</th>
-        <td></td><td></td><td class="f"></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+        <td></td><td></td><td class="f"></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
       </tr>
       <tr>
         <th class="task">Perception-based mission controllers: TRACK_DRIVE and AUTOCROSS (cone-pair midpoint steering from /cones)</th>
-        <td></td><td></td><td></td><td class="f"></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+        <td></td><td></td><td></td><td class="f"></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
       </tr>
       <tr>
         <th class="task">Closed-loop SIL verification harnesses for every mission (substitute physics + FoV-limited sensor error models)</th>
-        <td></td><td></td><td></td><td class="f"></td><td class="f"></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+        <td></td><td></td><td></td><td class="f"></td><td class="f"></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
       </tr>
       <tr>
         <th class="task">Full-simulation validation of all four missions on sim track maps</th>
-        <td></td><td></td><td></td><td></td><td></td><td class="f"></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+        <td></td><td></td><td></td><td></td><td></td><td class="f"></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
       </tr>
       <tr>
         <th class="task">State estimation: EKF integration (wheel odometry + IMU), measured against ground truth, validated in closed loop</th>
-        <td></td><td></td><td></td><td></td><td></td><td></td><td class="f"></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td><td></td>
+        <td></td><td></td><td></td><td></td><td></td><td></td><td class="f"></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
       </tr>
       <tr>
         <th class="task">Perception-based lap counting (start/finish gate cones) and statistical Monte-Carlo test infrastructure</th>
-        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td><td></td>
+        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
       </tr>
       <tr>
         <th class="task">Robustness evaluation: Monte-Carlo sweeps (perception + odometry knobs) → success-rate graphs for the report</th>
-        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="f"></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td>
+        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="f"></td><td class="f"></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
       </tr>
       <tr>
         <th class="task">CI regression suite: headless pass/fail harness runs on every commit</th>
-        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td>
+        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="f"></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
       </tr>
       <tr>
         <th class="task">Interface contract document: raw sensor layer ↔ object layer (topics, types, frames, rates) — deliverable</th>
-        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="f"></td><td class="f"></td><td></td><td></td><td></td><td></td>
+        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="f"></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
       </tr>
       <tr>
         <th class="task">NVIDIA Jetson procurement &amp; JetPack 6 bring-up — parallel hardware track</th>
-        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="f"></td><td class="f"></td><td class="f"></td><td></td><td></td><td></td>
+        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="f"></td><td class="f"></td><td class="f"></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td><td></td>
       </tr>
       <tr>
         <th class="task">Embedded deployment: arm64 image; sim on laptop ↔ autonomy stack on Jetson; latency &amp; resource benchmarking</th>
-        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="f"></td><td class="f"></td><td></td><td></td>
+        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="f"></td><td class="f"></td><td class="f"></td><td></td><td></td><td></td>
       </tr>
       <tr>
         <th class="task">Upstream merge requests for the documented simulator defects</th>
-        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="f"></td><td class="f"></td><td></td><td></td><td></td><td></td>
-      </tr>
-      <tr>
-        <th class="task">Presentation slides &amp; demo: develop → verify → deploy narrative, ROS 2 architecture, Foxglove</th>
-        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td><td></td>
+        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="f"></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td>
       </tr>
       <tr>
         <th class="task">Final report compilation, guide review, Sem 7 submission</th>
-        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="f"></td><td class="f"></td><td class="f"></td>
+        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="f"></td><td class="f"></td>
       </tr>
     </tbody>
   </table>
