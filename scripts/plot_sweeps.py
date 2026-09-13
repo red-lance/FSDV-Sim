@@ -47,7 +47,21 @@ def main():
     ap.add_argument("csv_file")
     ap.add_argument("--x", required=True, help="swept parameter (CSV column)")
     ap.add_argument("--out", default="", help="output PNG (default: csv stem)")
+    ap.add_argument("--dev-col", default="",
+                    help="deviation column for the bottom plot (default: "
+                         "auto-detect dev_max [trackdrive] or circ_err_max [skidpad])")
+    ap.add_argument("--ref-line", type=float, default=None,
+                    help="safety-margin reference value for the bottom plot "
+                         "(default: 1.75 for dev_max, 1.5 for circ_err_max)")
     args = ap.parse_args()
+
+    with open(args.csv_file, newline="") as f:
+        header = next(csv.reader(f))
+    dev_col = args.dev_col or next(
+        (c for c in ("dev_max", "circ_err_max") if c in header), None)
+    ref_line = args.ref_line
+    if ref_line is None:
+        ref_line = {"dev_max": 1.75, "circ_err_max": 1.5}.get(dev_col)
 
     groups = {}
     with open(args.csv_file, newline="") as f:
@@ -59,8 +73,8 @@ def main():
             g = groups.setdefault(x, {"n": 0, "pass": 0, "dev": []})
             g["n"] += 1
             g["pass"] += int(row["success"])
-            if row.get("dev_max"):
-                g["dev"].append(float(row["dev_max"]))
+            if dev_col and row.get(dev_col):
+                g["dev"].append(float(row[dev_col]))
 
     if not groups:
         raise SystemExit("no rows with column %r in %s" % (args.x, args.csv_file))
@@ -100,11 +114,13 @@ def main():
     n_str = "/".join(str(groups[x]["n"]) for x in xs)
     ax1.set_title("Monte-Carlo sweep: %s  (n=%s episodes/point)" % (args.x, n_str))
 
-    ax2.plot(xs, dev_med, marker="o", label="median dev_max")
-    ax2.plot(xs, dev_hi, marker="x", linestyle="--", label="worst dev_max")
-    ax2.axhline(1.75, color="red", linewidth=1, label="half track width")
+    ax2.plot(xs, dev_med, marker="o", label="median %s" % (dev_col or "deviation"))
+    ax2.plot(xs, dev_hi, marker="x", linestyle="--", label="worst %s" % (dev_col or "deviation"))
+    if ref_line is not None:
+        ax2.axhline(ref_line, color="red", linewidth=1,
+                    label="half track/lane width (%.2g m)" % ref_line)
     ax2.set_xlabel(args.x)
-    ax2.set_ylabel("path deviation (m)")
+    ax2.set_ylabel("path/circle deviation (m)")
     ax2.grid(alpha=0.3)
     ax2.legend(fontsize=8)
 
