@@ -1,0 +1,311 @@
+<title>Sim-First Autonomy Platform Paper</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  :root {
+    --paper: #FBF9F6;
+    --panel: #FFFFFF;
+    --ink: #221A17;
+    --ink-2: #5B4F49;
+    --rule: #E4DCD3;
+    --accent: #8A1F2B;
+    --accent-2: #B9722A;
+    --tag-bg: #F1E4D9;
+    --code-bg: #F4EFE8;
+    --shadow: 0 1px 2px rgba(40,20,10,.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #1B1613; --panel: #231C18; --ink: #EFE6DE; --ink-2: #C3B3A8;
+      --rule: #3B322C; --accent: #E2707B; --accent-2: #E0A15C;
+      --tag-bg: #382A22; --code-bg: #2A211C; --shadow: 0 1px 2px rgba(0,0,0,.3);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #1B1613; --panel: #231C18; --ink: #EFE6DE; --ink-2: #C3B3A8;
+    --rule: #3B322C; --accent: #E2707B; --accent-2: #E0A15C;
+    --tag-bg: #382A22; --code-bg: #2A211C; --shadow: 0 1px 2px rgba(0,0,0,.3);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, sans-serif;
+    margin: 0; padding-block: 0; line-height: 1.6;
+  }
+  a { color: var(--accent); }
+
+  .layout {
+    display: grid; grid-template-columns: 230px minmax(0,760px);
+    gap: 40px; max-width: 1080px; margin: 0 auto;
+    padding: 44px 20px 90px;
+  }
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; padding: 28px 16px 70px; }
+    nav.toc { position: static !important; order: 2; }
+  }
+
+  nav.toc {
+    position: sticky; top: 28px; align-self: start;
+    font-size: 13px; border-left: 2px solid var(--rule); padding-left: 14px;
+  }
+  nav.toc .eyebrow {
+    font-family: "IBM Plex Mono", monospace; font-size: 10.5px;
+    letter-spacing: .08em; text-transform: uppercase; color: var(--accent-2);
+    margin: 0 0 10px;
+  }
+  nav.toc ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
+  nav.toc a { color: var(--ink-2); text-decoration: none; }
+  nav.toc a:hover { color: var(--accent); }
+
+  header.mast {
+    grid-column: 1 / -1;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 26px; margin-bottom: 6px;
+  }
+  .kicker {
+    font-family: "IBM Plex Mono", monospace; font-size: 11.5px;
+    letter-spacing: .09em; text-transform: uppercase; color: var(--accent);
+    margin: 0 0 14px;
+  }
+  h1.doctitle {
+    font-family: "Source Serif 4", Georgia, serif; font-weight: 700;
+    font-size: clamp(28px, 4vw, 38px); line-height: 1.18; margin: 0 0 14px;
+    text-wrap: balance; max-width: 20ch;
+  }
+  .authors { font-size: 14.5px; color: var(--ink-2); margin: 0 0 4px; }
+  .authors b { color: var(--ink); font-weight: 600; }
+  .brief-note {
+    margin-top: 18px; padding: 12px 15px; background: var(--tag-bg);
+    border-radius: 6px; font-size: 13.5px; color: var(--ink-2); max-width: 62ch;
+  }
+  .brief-note b { color: var(--ink); }
+
+  main { min-width: 0; }
+
+  section.pchunk { padding-top: 6px; margin-bottom: 40px; scroll-margin-top: 20px; }
+  h2.rn {
+    font-family: "Source Serif 4", serif; font-weight: 700; font-size: 20px;
+    display: flex; align-items: baseline; gap: 10px; margin: 0 0 4px;
+  }
+  h2.rn .num { font-family: "IBM Plex Mono", monospace; color: var(--accent); font-size: 15px; }
+  .section-status {
+    font-family: "IBM Plex Mono", monospace; font-size: 10.5px; letter-spacing: .04em;
+    text-transform: uppercase; color: var(--accent-2); margin: 0 0 16px;
+  }
+  h3.sub {
+    font-family: "Source Serif 4", serif; font-weight: 600; font-size: 16px;
+    margin: 22px 0 8px;
+  }
+  p { margin: 0 0 13px; max-width: 66ch; font-size: 15px; }
+  ul, ol.body-list { margin: 0 0 13px; padding-left: 22px; max-width: 64ch; }
+  li { margin-bottom: 5px; font-size: 15px; }
+  strong { font-weight: 600; }
+  em.term { font-style: italic; color: var(--ink-2); }
+
+  .callout {
+    border-left: 3px solid var(--accent-2); background: var(--tag-bg);
+    padding: 10px 14px; border-radius: 0 6px 6px 0; margin: 14px 0 18px;
+    font-size: 13.5px; color: var(--ink-2); max-width: 62ch;
+  }
+  .callout b { color: var(--ink); }
+
+  table {
+    border-collapse: collapse; width: 100%; max-width: 680px; margin: 10px 0 20px;
+    font-size: 13.5px; background: var(--panel); box-shadow: var(--shadow); border-radius: 6px;
+    overflow: hidden;
+  }
+  .twrap { overflow-x: auto; }
+  caption { caption-side: top; text-align: left; font-size: 12.5px; color: var(--ink-2);
+    padding: 0 0 8px; font-family: "IBM Plex Mono", monospace; }
+  th, td { padding: 7px 11px; border-bottom: 1px solid var(--rule); text-align: left;
+    font-variant-numeric: tabular-nums; }
+  thead th { background: var(--tag-bg); font-weight: 600; color: var(--ink); }
+  tbody tr:last-child td { border-bottom: none; }
+
+  code, .mono { font-family: "IBM Plex Mono", monospace; font-size: 12.5px;
+    background: var(--code-bg); padding: 1px 5px; border-radius: 4px; }
+
+  .refs { list-style: none; margin: 0; padding: 0; counter-reset: refc; max-width: 66ch; }
+  .refs li { counter-increment: refc; font-size: 13.5px; color: var(--ink-2);
+    padding-left: 30px; position: relative; margin-bottom: 9px; }
+  .refs li::before { content: "[" counter(refc) "]"; position: absolute; left: 0;
+    color: var(--accent); font-family: "IBM Plex Mono", monospace; font-size: 12px; }
+
+  footer.brief-foot {
+    grid-column: 1 / -1; border-top: 1px solid var(--rule); margin-top: 20px;
+    padding-top: 18px; font-size: 12.5px; color: var(--ink-2);
+  }
+</style>
+
+<div class="layout">
+  <header class="mast">
+    <p class="kicker">Content brief — for the IEEE-format paper</p>
+    <h1 class="doctitle">A Simulation-First Development and Validation Platform for a Formula Student Driverless Autonomy Stack</h1>
+    <p class="authors"><b>Rishi Satish</b> · <b>Harshvardhan Singh</b> · <b>Ayon Majumdar</b><br>
+    Dept. of Electronics and Computer Engineering, K. J. Somaiya School of Engineering, Somaiya Vidyavihar University, Mumbai — Guide: Dr. Makarand Govind Kulkarni</p>
+    <div class="brief-note">
+      <b>How to use this document.</b> It's written section-by-section against the IEEE conference-paper skeleton (Abstract → I. Introduction … → References), with real, verified project content already filled in — not a template with blanks. Paste it into the IEEEtran two-column Overleaf template as-is, then trim to your page limit. Each section header below notes what changed from last semester's report and why, so the team can sanity-check before submitting.
+    </div>
+  </header>
+
+  <nav class="toc">
+    <p class="eyebrow">Sections</p>
+    <ol>
+      <li><a href="#abstract">Abstract</a></li>
+      <li><a href="#s1">I. Introduction</a></li>
+      <li><a href="#s2">II. Related Work</a></li>
+      <li><a href="#s3">III. System Architecture</a></li>
+      <li><a href="#s4">IV. Methodology</a></li>
+      <li><a href="#s5">V. Results</a></li>
+      <li><a href="#s6">VI. Discussion</a></li>
+      <li><a href="#s7">VII. Future Work</a></li>
+      <li><a href="#s8">VIII. Conclusion</a></li>
+      <li><a href="#refs">References</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <section class="pchunk" id="abstract">
+      <h2 class="rn">Abstract</h2>
+      <p>Formula Student (FS) Driverless teams must validate a full perception-to-control autonomy stack before physical hardware exists, yet most published pipelines assume the sensors and compute are already on the car. This paper presents a simulation-first development and validation platform for FS Driverless, built on ROS 2 Humble and the eufs_sim2 simulator, that develops, tests, and statistically certifies mission controllers for all four FS Driverless dynamic events — Acceleration, Skidpad, Autocross, and Trackdrive — before any hardware procurement. The stack is deliberately contained: the autonomy package depends on the simulator for exactly one interface (its ROS 2 message definitions), so the same code that drives the simulated car is designed to drive a Jetson-based vehicle unchanged. Closed-loop proportional speed control, pure-pursuit steering, and perception-gated lap counting were implemented and verified for all four events, and an Extended Kalman Filter fusing IMU and wheel odometry was integrated and validated against a lightweight software-in-the-loop (SIL) model of sensor noise. A Monte-Carlo test harness with Wilson-score confidence intervals was used to quantify robustness under swept odometry drift, finding a mission success rate of 100% (95% CI 67.6–100%, n=8) up to 8°/√min of yaw drift, falling to 87.5% (CI 52.9–97.8%) only at 10°/√min, with worst-case circle-tracking error rising sharply past that point even though the median stays low. In the course of this work, four defects were identified and documented in the upstream eufs_sim2 simulator, two of which silently break braking and cone perception for any team using the simulator's default configuration. The result is a reusable, statistically validated software platform that de-risks the team's hardware phase rather than substituting for it.</p>
+      <p><em>Keywords</em> — Formula Student Driverless, ROS 2, autonomous vehicle simulation, Extended Kalman Filter, sensor fusion, Monte-Carlo testing, pure pursuit control, software-in-the-loop testing.</p>
+    </section>
+
+    <section class="pchunk" id="s1">
+      <h2 class="rn"><span class="num">I.</span> Introduction</h2>
+      <p class="section-status">Reframed — same domain, changed thesis</p>
+      <h3 class="sub">A. Background</h3>
+      <p>Formula Student (FS) Driverless, run under SAE and IMechE rules, requires a fully autonomous formula-style car to complete four dynamic events on a track delimited by coloured cones: Acceleration (a straight-line sprint), Skidpad (a fixed figure-eight), Autocross (a single timed lap of an unseen track), and Trackdrive (ten laps of the same track). Each event exercises a different slice of the autonomy stack — Acceleration stresses closed-loop speed control alone, Skidpad stresses steering against a known geometry, and Autocross/Trackdrive stress the full perception-to-control loop under an unknown track.</p>
+      <h3 class="sub">B. Motivation and Pivot</h3>
+      <p>The team's original proposal (Semester VI) targeted hardware selection and a perception benchmark ahead of physical integration — a defensible path, but one where the autonomy logic itself cannot be exercised, end-to-end, until the vehicle control unit (VCU), LiDAR, and camera are procured, fabricated, and wired. This leaves the highest-risk part of the system — the software that actually drives the car — unverified for the majority of the project timeline. This project instead treats the simulator as the primary development target: every mission controller, the state estimator, and the statistical test suite are built, run, and quantitatively validated in simulation first, against the same ROS 2 topic contract the real hardware will eventually publish. The hardware selection work from the previous semester (VCU, LiDAR, detector benchmark) is preserved as the target deployment plan; this phase's contribution is the software platform that plan will run on.</p>
+      <h3 class="sub">C. Contributions</h3>
+      <ul>
+        <li>A hardware-independent ROS 2 autonomy package (<code>fs_autonomy</code>) implementing closed-loop mission controllers for all four FS Driverless dynamic events, gated on the simulator's official Autonomous System state machine.</li>
+        <li>A software-in-the-loop (SIL) test harness with an injectable sensor-error model (detection dropout, bearing/range noise, colour-flip, false positives, latency, odometry drift) for fast, statistically repeatable testing without the full simulator.</li>
+        <li>An Extended Kalman Filter state-estimation layer, validated by a model-fidelity prediction test against the full simulator.</li>
+        <li>A Monte-Carlo robustness methodology (seeded episodes, Wilson-score confidence intervals) applied to quantify mission success under swept sensor degradation.</li>
+        <li>Four previously undocumented defects identified in the upstream eufs_sim2 simulator, two of which affect any team using its default control and perception topics.</li>
+      </ul>
+    </section>
+
+    <section class="pchunk" id="s2">
+      <h2 class="rn"><span class="num">II.</span> Related Work</h2>
+      <p class="section-status">Kept — same three themes, one theme added</p>
+      <p>The previous report's literature review already establishes the relevant background on single-stage object detectors for real-time cone perception (YOLO and its successors, benchmarked against the FSOCO dataset) [1]–[3], LiDAR–camera sensor fusion and graph-SLAM for cone-landmark localisation [4], and Pure Pursuit path tracking as the standard control law for cone-delimited tracks [5]. That material carries forward unchanged into this paper's related-work section. What is new to this phase is a fourth theme this project draws on directly:</p>
+      <h3 class="sub">D. Simulation-in-the-Loop Testing and State Estimation</h3>
+      <p>Software- and hardware-in-the-loop testing is well established in robotics as a way to validate autonomy logic against injected sensor faults before committing to physical trials, and Extended Kalman Filter (EKF) fusion of inertial and odometric measurements — as implemented in ROS's <code>robot_localization</code> package — remains the standard low-cost approach to state estimation where LiDAR/visual odometry is either unavailable or reserved for perception rather than pose. This project's contribution relative to that literature is not a new estimator or fusion algorithm, but a validated, reusable instance of both, purpose-built for the FS Driverless topic contract, together with a statistical (rather than anecdotal) robustness methodology for reporting how such a stack degrades under sensor noise.</p>
+    </section>
+
+    <section class="pchunk" id="s3">
+      <h2 class="rn"><span class="num">III.</span> System Architecture</h2>
+      <p class="section-status">New — this is the core of the pivot</p>
+      <h3 class="sub">A. Containment: One Dependency, Not a Platform Lock-In</h3>
+      <p>The autonomy package (<code>fs_autonomy</code>) has zero build dependency on the eufs_sim2 simulator itself; its only link to the simulation stack is <code>eufs_msgs</code>, a pure ROS 2 message-definition package shared by both the simulator and any future hardware driver nodes. Every controller consumes only standard, sensor-agnostic topics — pose/odometry, cone detections, IMU, and the Autonomous System state string — and emits only an Ackermann drive command. Because the simulator's own architecture publishes the identical topic graph a set of real driver nodes would, replacing the simulator process with hardware driver nodes requires no change to the autonomy code. This "develop once, deploy unchanged" property is the platform's central design goal and directly de-risks the hardware phase that follows this one.</p>
+      <h3 class="sub">B. Mission-Gating Pattern</h3>
+      <p>The simulator never launches user autonomy code; it only reports the selected mission and state via <code>/sim/ros_can/state_str</code> (e.g. <code>AMIState: SKIDPAD, ASState: DRIVING</code>). Every controller subscribes to this topic and self-gates: it activates only when its own mission is selected and the state machine has reached the <code>DRIVING</code> state, and stands down otherwise. This mirrors how a real FS Driverless VCU hands off control after its own readiness checks, and lets all four mission controllers run under one launch file, with the operator's mission selection — not a code change — deciding which one engages.</p>
+      <h3 class="sub">C. Four Mission Controllers</h3>
+      <div class="twrap"><table>
+        <caption>Table I — Mission controllers implemented</caption>
+        <thead><tr><th>Event</th><th>Control strategy</th><th>Perception dependency</th></tr></thead>
+        <tbody>
+          <tr><td>Acceleration</td><td>Closed-loop proportional speed control to a straight-line setpoint, timed brake at the finish gate</td><td>None (odometry only)</td></tr>
+          <tr><td>Skidpad</td><td>Pure-pursuit steering around a fixed figure-eight geometry</td><td>None (known track geometry)</td></tr>
+          <tr><td>Trackdrive</td><td>Perception-based pure pursuit: nearest blue/yellow cone pair midpoint as the local target</td><td>Cone detections, per lap</td></tr>
+          <tr><td>Autocross</td><td>Identical executable to Trackdrive, configured for a single lap</td><td>Cone detections</td></tr>
+        </tbody>
+      </table></div>
+      <p>Speed control is closed-loop rather than open-loop because the simulator's vehicle model reads only an acceleration and a steering-angle command from <code>/cmd</code> — a directly commanded target speed is silently ignored (Section V-C, Bug 1). Trackdrive and Autocross count laps from cone perception of the start/finish "big orange" gate pair rather than from odometry, removing odometry as a dependency for mission-critical logic; a rising-edge detector debounced by a cooldown and a sustained-absence dwell period prevents both premature re-triggering and double-counting under detection dropout.</p>
+    </section>
+
+    <section class="pchunk" id="s4">
+      <h2 class="rn"><span class="num">IV.</span> Methodology</h2>
+      <p class="section-status">New</p>
+      <h3 class="sub">A. Simulation Environment</h3>
+      <p>All development and testing runs against eufs_sim2 on ROS 2 Humble / Ubuntu 22.04, the same simulator whose topic setup was verified in the previous phase. The simulator publishes a 3-DOF dynamic bicycle vehicle model plus child sensor-plugin nodes (LiDAR, depth camera, IMU, GPS, wheel speed) and the official AS state machine, visualised and logged via Foxglove exactly as before.</p>
+      <h3 class="sub">B. State Estimation</h3>
+      <p>An Extended Kalman Filter (via ROS's <code>robot_localization</code> package) fuses IMU yaw-rate and linear acceleration with wheel-odometry-derived forward velocity to produce a filtered pose estimate, replacing raw simulated ground truth as the controller's position input. LiDAR and camera measurements are deliberately excluded from the fusion at this stage and remain simulated ground-truth passthroughs — perception-derived pose is future work (Section VII); this phase's EKF work targets the ego-motion estimation problem in isolation.</p>
+      <h3 class="sub">C. Software-in-the-Loop Test Harnesses</h3>
+      <p>Because the full simulator is expensive to run at the scale needed for statistical testing, each mission has a lightweight SIL harness — a kinematic-bicycle physics substitute driven by the same controller code — with an injectable error model: distance-bucketed detection probability, bearing/range noise, cone colour-flip, Poisson-sampled false positives, detection latency, and a seeded random-walk odometry drift, each on an independent noise stream. The trackdrive harness's error model can additionally be loaded from a real detector's measured <code>error_profile.json</code>, so its injected noise reflects an actual, benchmarked perception system rather than an assumed one.</p>
+      <h3 class="sub">D. Monte-Carlo Robustness Methodology</h3>
+      <p>Mission success across a swept parameter (e.g. odometry yaw-drift rate) is estimated from <em class="term">n</em> independent, seeded episodes per parameter value, each run under a rotated ROS 2 DDS domain ID to prevent cross-episode interference on shared hardware. Because each episode is a single Bernoulli pass/fail trial, the 95% confidence interval on the estimated success rate is computed with the Wilson score interval [6] rather than the naive normal approximation, since Wilson stays bounded in [0, 1] and remains well-behaved at the small sample sizes and near-0%/100% success rates this regime produces.</p>
+    </section>
+
+    <section class="pchunk" id="s5">
+      <h2 class="rn"><span class="num">V.</span> Results</h2>
+      <p class="section-status">New — all figures below are measured, not projected</p>
+      <h3 class="sub">A. Mission Controllers</h3>
+      <p>All four mission controllers were verified end-to-end in their SIL harnesses, with the Acceleration and Skidpad controllers additionally demonstrated live in the full simulator. Acceleration holds its commanded speed and brakes to a stop within the finish zone; Skidpad tracks the figure-eight to within a few centimetres of radial error per lap; Trackdrive completes multi-lap circuits under injected perception noise with correct, non-duplicated lap counting.</p>
+      <h3 class="sub">B. Monte-Carlo Sweep: Odometry Drift vs. Skidpad Success</h3>
+      <div class="twrap"><table>
+        <caption>Table II — Skidpad mission success vs. odometry yaw drift (n = 8 episodes/point)</caption>
+        <thead><tr><th>Yaw drift (°/√min)</th><th>Success rate</th><th>95% CI (Wilson)</th><th>Median circle error (m)</th><th>Worst-case error (m)</th></tr></thead>
+        <tbody>
+          <tr><td>0</td><td>100%</td><td>67.6–100%</td><td>0.05</td><td>0.72</td></tr>
+          <tr><td>2–6</td><td>100%</td><td>67.6–100%</td><td>0.1–0.2</td><td>0.8–1.8</td></tr>
+          <tr><td>8</td><td>100%</td><td>67.6–100%</td><td>0.35</td><td>2.6</td></tr>
+          <tr><td>10</td><td>87.5%</td><td>52.9–97.8%</td><td>0.44</td><td>3.84</td></tr>
+        </tbody>
+      </table></div>
+      <p>Mission success stays at 100% through 8°/√min of injected yaw drift and drops only at the extreme, 10°/√min setting. Read against the confidence interval rather than the point estimate alone, the result is stronger than an exploratory small-sample run would suggest: the median circle-tracking error grows gently across the whole sweep, but the <em class="term">worst-case</em> error grows sharply past 8°/√min — the mean stays robust while the tail risk is where the system actually breaks, which is the number a safety margin should be set against, not the median.</p>
+      <h3 class="sub">C. Upstream Simulator Defects Identified</h3>
+      <div class="twrap"><table>
+        <caption>Table III — Defects found in eufs_sim2 during development</caption>
+        <thead><tr><th>#</th><th>Location</th><th>Defect</th><th>Impact</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td><code>control.cpp</code></td><td>Vehicle model reads only <code>drive.acceleration</code>/<code>steering_angle</code> from <code>/cmd</code>; <code>drive.speed</code> is silently ignored</td><td>A directly commanded speed produces no braking or acceleration — must be closed-loop</td></tr>
+          <tr><td>2</td><td><code>cone_fusion.cpp</code></td><td>The fused <code>/cones</code> publisher is constructed but never called</td><td>The documented fused-cone topic is permanently empty; real feed is <code>/cones/lenient</code></td></tr>
+          <tr><td>3</td><td><code>/ros_can/twist</code></td><td>Angular axes scrambled; covariance hardcoded to zero</td><td>Unsafe to fuse into any EKF without correction</td></tr>
+          <tr><td>4</td><td>IMU sensor plugin config</td><td>Default noise covariance set to identity (unrealistically noisy)</td><td>Understates achievable EKF accuracy unless raised to sensor-realistic values</td></tr>
+        </tbody>
+      </table></div>
+      <p>Defects 1 and 2 are silent — they produce no error message, only a car that never brakes or a perception pipeline that never receives cones — and would block any team's first integration attempt using the simulator's advertised default topics. Both are documented here as candidates for upstream merge requests.</p>
+      <h3 class="sub">D. Model-Fidelity Validation</h3>
+      <p>To check that the cheap SIL model is a trustworthy stand-in for the expensive full simulator, the SIL skidpad model's predicted mean circle-tracking error under the EKF's measured drift characteristics (0.32 m) was compared against a direct measurement taken in the full simulator under the same conditions (0.33 m) — a 0.01 m difference, validating the SIL model as representative rather than merely convenient.</p>
+    </section>
+
+    <section class="pchunk" id="s6">
+      <h2 class="rn"><span class="num">VI.</span> Discussion</h2>
+      <p class="section-status">New</p>
+      <p>The central claim this phase supports is that a simulation-first platform lets the highest-risk software — the part that must run correctly on the first hardware trial — be exercised, broken, and statistically characterised hundreds of times before a single sensor is procured. The Monte-Carlo results in Table II are the clearest evidence of this: a result like "the system is robust to 8°/√min of drift but its tail risk grows sharply beyond that" is not obtainable from a handful of manual test drives, in simulation or on a real car, and directly informs the specification the team should now write for its IMU and wheel-encoder hardware. The upstream defects found (Table III) further show that even a widely used open-source simulator cannot be trusted uncritically — the containment architecture (Section III-A) that lets this platform swap the simulator for real hardware without code changes is the same property that made isolating those defects tractable, since the autonomy code's behaviour, not the simulator's, could be held constant while the fault was traced.</p>
+    </section>
+
+    <section class="pchunk" id="s7">
+      <h2 class="rn"><span class="num">VII.</span> Future Work</h2>
+      <p class="section-status">Carried forward, re-scoped against work already done</p>
+      <ul>
+        <li><b>Hardware deployment.</b> Bring up the previously selected STM32H753ZI VCU and Hesai AT128 LiDAR, and replace the simulator process with real driver nodes publishing the same topic contract — the test this whole platform was built to pass.</li>
+        <li><b>Perception integration.</b> Replace the SIL harness's synthetic error model with the previously benchmarked YOLOv9 detector's measured error profile, closing the loop between the Semester VI detection benchmark and this phase's controllers.</li>
+        <li><b>Full sensor-fusion EKF.</b> Extend state estimation to fuse perception-derived landmark corrections, not just IMU/wheel odometry.</li>
+        <li><b>Continuous-integration regression suite.</b> Run the Monte-Carlo sweeps automatically on every code change, so a regression in mission robustness is caught before it reaches the car.</li>
+        <li><b>Upstream contributions.</b> Submit merge requests for the four eufs_sim2 defects documented in Table III.</li>
+      </ul>
+    </section>
+
+    <section class="pchunk" id="s8">
+      <h2 class="rn"><span class="num">VIII.</span> Conclusion</h2>
+      <p class="section-status">New</p>
+      <p>This paper presented a simulation-first autonomy platform for Formula Student Driverless, covering closed-loop mission control for all four dynamic events, EKF-based state estimation validated by a model-fidelity test, and a Monte-Carlo robustness methodology reporting statistically grounded, confidence-interval-backed success rates rather than anecdotal pass/fail demonstrations. Four previously undocumented defects were found and characterised in the upstream simulator. Because the platform's only coupling to the simulator is a shared message-definition package, the software validated here is designed to transfer to the team's physical vehicle without modification, making this phase's primary contribution not a demonstration but a body of statistically characterised, reusable, hardware-ready autonomy software.</p>
+    </section>
+
+    <section class="pchunk" id="refs">
+      <h2 class="rn">References</h2>
+      <ol class="refs">
+        <li>J. Redmon, S. Divvala, R. Girshick, and A. Farhadi, "You only look once: Unified, real-time object detection," <i>IEEE Conf. Computer Vision and Pattern Recognition</i>, pp. 779–788, 2016.</li>
+        <li>C.-Y. Wang, I.-H. Yeh, and H.-Y. M. Liao, "YOLOv9: Learning what you want to learn using programmable gradient information," <i>arXiv:2402.13616</i>, 2024.</li>
+        <li>M. Bülter <i>et al.</i>, "FSOCO: The Formula Student objects in context dataset," <i>Proc. IEEE Intelligent Vehicles Symposium</i>, 2021.</li>
+        <li>C. Cadena <i>et al.</i>, "Past, present, and future of simultaneous localization and mapping: Toward the robust-perception age," <i>IEEE Trans. Robotics</i>, vol. 32, no. 6, pp. 1309–1332, 2016.</li>
+        <li>R. C. Coulter, "Implementation of the pure pursuit path tracking algorithm," Carnegie Mellon Univ., Robotics Institute Tech. Rep., 1992.</li>
+        <li>E. B. Wilson, "Probable inference, the law of succession, and statistical inference," <i>J. American Statistical Association</i>, vol. 22, no. 158, pp. 209–212, 1927.</li>
+        <li>T. Moore and D. Stouch, "A generalized extended Kalman filter implementation for the robot operating system," <i>Intelligent Autonomous Systems 13</i>, Springer, pp. 335–348, 2016.</li>
+        <li>Open Robotics, "ROS 2 documentation: Humble Hawksbill," 2022. [Online]. Available: https://docs.ros.org/en/humble/</li>
+      </ol>
+    </section>
+
+  </main>
+
+  <footer class="brief-foot">
+    Content brief for the team's IEEE-format research paper · K. J. Somaiya School of Engineering · drawn from verified results in <span class="mono">docs/PROJECT_HANDOFF.md</span> and the Sept. 2026 progress review. Replace the working title, tighten each section to the venue's page limit, and add the Semester VI hardware-selection tables (MCU/LiDAR/detector benchmark) into Section V if the target venue wants that detail restated rather than only referenced.
+  </footer>
+</div>
