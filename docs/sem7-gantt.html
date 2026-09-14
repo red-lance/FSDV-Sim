@@ -48,14 +48,14 @@
   .gantt-wrap { overflow-x: auto; }
   table {
     border-collapse: collapse; table-layout: fixed;
-    width: 1128px; font-size: 12px;
+    width: 1128px; font-size: 13.5px;
   }
-  col.task { width: 320px; }
-  col.wk { width: 67px; }
+  col.task { width: 360px; }
+  col.wk { width: 64px; }
 
   thead th {
     background: var(--head-bg); color: var(--head-ink);
-    font-weight: 700; padding: 6px 4px; text-align: center;
+    font-weight: 700; padding: 7px 4px; text-align: center;
     border: 1px solid var(--rule);
     font-variant-numeric: tabular-nums;
   }
@@ -64,9 +64,9 @@
   tbody th, tbody td { border: 1px solid var(--rule); }
   tbody th.task {
     text-align: left; font-weight: 400; color: var(--ink);
-    padding: 6px 9px; line-height: 1.32; background: var(--paper);
+    padding: 8px 10px; line-height: 1.35; background: var(--paper);
   }
-  tbody td { height: 34px; background: var(--paper); }
+  tbody td { height: 44px; background: var(--paper); }
   tbody td.f { background: var(--fill); }
 
   @media print {
@@ -98,78 +98,42 @@
     </thead>
     <tbody>
       <tr>
-        <th class="task">Simulation environment bring-up: eufs_sim2 + Foxglove toolchain on Ubuntu 22.04 / ROS 2 Humble; visualization &amp; startup diagnostics</th>
+        <th class="task">Simulation environment setup &amp; architecture audit (eufs_sim2, ROS 2, Foxglove)</th>
         <td class="f"></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
       </tr>
       <tr>
-        <th class="task">Audit eufs_sim2 architecture — control input path, cone pipeline, VCU state machine (deliverable: interface audit doc)</th>
-        <td class="f"></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+        <th class="task">Core mission controller development &amp; closed-loop testing (all four FS events)</th>
+        <td></td><td class="f"></td><td class="f"></td><td class="f"></td><td class="f"></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td><td></td>
       </tr>
 
       <tr>
-        <th class="task">Monthly Review Demo — ACCELERATION event: closed-loop straight-line sprint, brake at 75&nbsp;m (August review)</th>
+        <th class="task">Monthly Review Demo — ACCELERATION event (August review)</th>
         <td></td><td></td><td></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
       </tr>
       <tr>
-        <th class="task">Monthly Review Demo — SKIDPAD event: closed-loop figure-8 (this review, September)</th>
+        <th class="task">Monthly Review Demo — SKIDPAD event (this review, September)</th>
         <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="f"></td><td></td><td></td><td></td><td></td>
       </tr>
       <tr>
-        <th class="task">Monthly Review Demo — TRACK_DRIVE event: full endurance run, perception-based lap counting (final review)</th>
+        <th class="task">Monthly Review Demo — TRACK_DRIVE event (final review)</th>
         <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="f"></td>
       </tr>
 
       <tr>
-        <th class="task">Design fs_autonomy workspace: topic contracts, sim-containment rules, mission-gated launch orchestration</th>
-        <td></td><td class="f"></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-      </tr>
-      <tr>
-        <th class="task">Odometry-based mission controllers: ACCELERATION (closed-loop speed) and SKIDPAD (figure-8 pure pursuit)</th>
-        <td></td><td></td><td class="f"></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-      </tr>
-      <tr>
-        <th class="task">Perception-based mission controllers: TRACK_DRIVE and AUTOCROSS (cone-pair midpoint steering from /cones)</th>
-        <td></td><td></td><td></td><td class="f"></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-      </tr>
-      <tr>
-        <th class="task">Closed-loop SIL verification harnesses for every mission (substitute physics + FoV-limited sensor error models)</th>
-        <td></td><td></td><td></td><td class="f"></td><td class="f"></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td><td></td>
-      </tr>
-      <tr>
-        <th class="task">Full-simulation validation of all four missions on sim track maps</th>
-        <td></td><td></td><td></td><td></td><td></td><td class="f"></td><td class="f"></td><td></td><td></td><td></td><td></td><td></td>
-      </tr>
-      <tr>
-        <th class="task">State estimation: EKF integration (wheel odometry + IMU), measured against ground truth, validated in closed loop</th>
+        <th class="task">State estimation: Extended Kalman Filter integration &amp; validation</th>
         <td></td><td></td><td></td><td></td><td></td><td></td><td class="f"></td><td class="f"></td><td></td><td></td><td></td><td></td>
       </tr>
       <tr>
-        <th class="task">Perception-based lap counting (start/finish gate cones) and statistical Monte-Carlo test infrastructure</th>
-        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="f"></td><td></td><td></td><td></td><td></td>
-      </tr>
-      <tr>
-        <th class="task">Robustness evaluation: Monte-Carlo sweeps (perception + odometry knobs) → success-rate graphs for the report</th>
+        <th class="task">Statistical robustness testing: Monte-Carlo sweeps &amp; success-rate analysis</th>
         <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="f"></td><td class="f"></td><td></td><td></td><td></td>
       </tr>
       <tr>
-        <th class="task">CI regression suite: headless pass/fail harness runs on every commit</th>
-        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="f"></td><td></td><td></td><td></td>
-      </tr>
-      <tr>
-        <th class="task">Interface contract document: raw sensor layer ↔ object layer (topics, types, frames, rates) — deliverable</th>
+        <th class="task">Documentation, CI pipeline &amp; upstream contributions</th>
         <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="f"></td><td class="f"></td><td></td><td></td>
       </tr>
       <tr>
-        <th class="task">NVIDIA Jetson procurement &amp; JetPack 6 bring-up — parallel hardware track</th>
+        <th class="task">Jetson procurement &amp; embedded deployment</th>
         <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="f"></td><td class="f"></td><td class="f"></td><td></td>
-      </tr>
-      <tr>
-        <th class="task">Embedded deployment: arm64 image; sim on laptop ↔ autonomy stack on Jetson; latency &amp; resource benchmarking</th>
-        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="f"></td><td class="f"></td><td class="f"></td>
-      </tr>
-      <tr>
-        <th class="task">Upstream merge requests for the documented simulator defects</th>
-        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="f"></td><td class="f"></td><td></td>
       </tr>
       <tr>
         <th class="task">Final report compilation, guide review, Sem 7 submission</th>
