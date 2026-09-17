@@ -143,7 +143,7 @@ The central claim this phase supports is that a simulation-first platform lets t
 ## VII. Future Work
 *Carried forward, re-scoped against work already done*
 
-- **Hardware deployment.** Bring up the previously selected STM32H753ZI VCU and Hesai AT128 LiDAR, and replace the simulator process with real driver nodes publishing the same topic contract — the test this whole platform was built to pass.
+- **Jetson deployment.** Deploy the unchanged software stack to an NVIDIA Jetson, replacing the simulator process with real driver nodes publishing the same topic contract — the direct test of the containment architecture (Section III-A) this platform was built around.
 - **Perception integration.** Replace the SIL harness's synthetic error model with the previously benchmarked YOLOv9 detector's measured error profile, closing the loop between the Semester VI detection benchmark and this phase's controllers.
 - **Full sensor-fusion EKF.** Extend state estimation to fuse perception-derived landmark corrections, not just IMU/wheel odometry.
 - **Continuous-integration regression suite.** Run the Monte-Carlo sweeps automatically on every code change, so a regression in mission robustness is caught before it reaches the car.
