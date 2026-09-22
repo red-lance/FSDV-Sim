@@ -156,16 +156,30 @@
     <h2 class="h"><span class="n">§2</span> Explain — the walkthrough</h2>
     <h1 class="bt">Talk through it in this order</h1>
 
-    <h3 class="step"><span class="dot">1</span> Why we pivoted</h3>
-    <p>Hardware-first means the autonomy code is the last thing tested, on the least forgiving platform (a real car, competition deadline looming). We flipped the order: build the software against a simulator that publishes the exact same ROS 2 topics real hardware will, so the switch to hardware is a driver-node swap, not a rewrite.</p>
+    <p style="color:var(--ink-2)">Talk in three movements: the platform underneath (ROS), the world it runs in (eufs_sim2), then what we actually built inside that world. Each one sets up the next — don't skip the first two to get to "the cool part," the cool part only makes sense because of them.</p>
 
-    <h3 class="step"><span class="dot">2</span> The one-dependency rule</h3>
-    <p>Our code (<code>fs_autonomy</code>) depends on the simulator for exactly one thing: <code>eufs_msgs</code>, the message definitions — nothing else. It never imports simulator internals. That's what makes "deploy to a Jetson unchanged" a real claim and not a slogan.</p>
+    <h2 class="h" style="margin-top:26px"><span class="n">A</span> ROS — the platform underneath</h2>
 
-    <h3 class="step"><span class="dot">3</span> Mission-gating — how four controllers share one launch</h3>
-    <p>The simulator never runs our code; it only announces the selected mission and state (<code>AMIState: SKIDPAD, ASState: DRIVING</code>). Every controller watches that topic and self-activates only when it's both selected and cleared to drive. So one launch file holds all four controllers, and picking a mission in the sim is what decides which one actually drives.</p>
+    <h3 class="step"><span class="dot">1</span> What ROS actually is</h3>
+    <p>ROS (Robot Operating System — we're on ROS 2 Humble, on Ubuntu 22.04) isn't an OS, it's middleware: instead of one giant program controlling the car, you write many small independent programs called <strong>nodes</strong>, and they talk to each other by publishing and subscribing to named <strong>topics</strong>, each carrying a fixed message type. A steering node never calls a perception node directly — it just subscribes to a <code>/cones</code> topic and reads whatever's published there, from whoever's publishing it.</p>
 
-    <h3 class="step"><span class="dot">4</span> The four controllers, one line each</h3>
+    <h3 class="step"><span class="dot">2</span> Why that specific detail matters for us</h3>
+    <p>That publish/subscribe boundary is the whole reason our "deploy unchanged" claim is even possible. Our controller doesn't know or care whether the thing publishing <code>/cones</code> is a simulator or a real camera+LiDAR pipeline — it only knows the topic name and message type. Swap what's on the other end of the topic, and our code doesn't need to change. That's not a nice side effect of using ROS, it's the specific property we're relying on.</p>
+
+    <h2 class="h" style="margin-top:26px"><span class="n">B</span> eufs_sim2 — the environment we run in</h2>
+
+    <h3 class="step"><span class="dot">3</span> What it is</h3>
+    <p>eufs_sim2 is a ROS 2-native vehicle simulator built for Formula Student Driverless. It's itself a ROS 2 node — a 3-DOF dynamic bicycle model of the car — with sensor plugins (LiDAR, depth camera, IMU, GPS, wheel speed) running as child nodes underneath it, each publishing its own topic exactly like a real sensor driver would.</p>
+
+    <h3 class="step"><span class="dot">4</span> It's an empty stage, not an autonomous car</h3>
+    <p>Important distinction to say out loud: eufs_sim2 contains zero autonomy. A car dropped into it just sits there — nothing drives unless something external publishes a drive command. It gives us physics, sensors, and an official Autonomous System state machine (mission select → ready → driving, published as <code>AMIState</code> / <code>ASState</code>) — the same lifecycle a real competition car goes through. It does not give us a single line of driving logic. That's entirely ours.</p>
+
+    <h3 class="step"><span class="dot">5</span> How our code plugs into that state machine</h3>
+    <p>The simulator never launches our code; it only announces the selected mission and state, e.g. <code>AMIState: SKIDPAD, ASState: DRIVING</code>. Every controller we wrote watches that one topic and self-activates only when it's both selected and cleared to drive. One launch file holds all four controllers at once — picking a mission in the sim UI, not a code change, decides which one actually takes the wheel.</p>
+
+    <h2 class="h" style="margin-top:26px"><span class="n">C</span> What we built inside it</h2>
+
+    <h3 class="step"><span class="dot">6</span> Four mission controllers, one line each</h3>
     <ul>
       <li><strong>Acceleration</strong> — closed-loop speed control, timed brake at the line.</li>
       <li><strong>Skidpad</strong> — pure-pursuit steering around a known figure-eight.</li>
@@ -173,16 +187,16 @@
       <li><strong>Autocross</strong> — same code as Trackdrive, one lap instead of many.</li>
     </ul>
 
-    <h3 class="step"><span class="dot">5</span> Why closed-loop, not just "send a speed"</h3>
-    <p>We found the simulator's vehicle model silently ignores a directly commanded speed — it only reads acceleration and steering angle. Command <code>speed: 0</code> and the car coasts, it doesn't brake. So every controller measures actual speed and corrects it continuously (P-control) instead of trusting an open-loop command.</p>
+    <h3 class="step"><span class="dot">7</span> Why closed-loop, not just "send a speed"</h3>
+    <p>While building this we found the simulator's vehicle model silently ignores a directly commanded speed — it only reads acceleration and steering angle off <code>/cmd</code>. Command <code>speed: 0</code> and the car coasts, it doesn't brake. So every controller measures actual speed and corrects it continuously (P-control) instead of trusting an open-loop command. First real bug we found, and it forced a better design.</p>
 
-    <h3 class="step"><span class="dot">6</span> State estimation (EKF)</h3>
+    <h3 class="step"><span class="dot">8</span> State estimation (EKF)</h3>
     <p>We fuse IMU yaw-rate/acceleration with wheel-odometry-derived speed through an Extended Kalman Filter, replacing raw simulated ground-truth with a realistic filtered pose estimate — the same kind of estimate real IMU/wheel-encoder hardware would produce, with real noise and drift.</p>
 
-    <h3 class="step"><span class="dot">7</span> Why we test with a cheap model instead of only the full simulator</h3>
+    <h3 class="step"><span class="dot">9</span> Why we test with a cheap model instead of only the full simulator</h3>
     <p>The full simulator is too slow to run hundreds of times. So each mission also has a lightweight software-in-the-loop (SIL) harness — same controller code, a cheap physics stand-in — with injectable sensor errors (dropout, noise, false positives, latency, drift). We checked this cheap model isn't lying to us: it predicted 0.32 m of skidpad tracking error under measured drift; the real, expensive simulator measured 0.33 m under the same conditions. That's the validation that lets us trust the fast tests.</p>
 
-    <h3 class="step"><span class="dot">8</span> The statistics, in one sentence</h3>
+    <h3 class="step"><span class="dot">10</span> The statistics, in one sentence</h3>
     <p>We ran 8 independent seeded episodes at each of six odometry-drift levels and computed a 95% confidence interval (Wilson score, the standard method for small-sample pass/fail data) on the success rate at each level — not just "it passed once."</p>
   </section>
 
