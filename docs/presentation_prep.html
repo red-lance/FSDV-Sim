@@ -1,0 +1,277 @@
+<title>Presentation Defense Prep</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root {
+    --paper: #F6F4EF;
+    --panel: #FFFFFF;
+    --ink: #1D2422;
+    --ink-2: #58635F;
+    --rule: #DBD5C8;
+    --accent: #1F6E5C;
+    --accent-ink: #FFFFFF;
+    --q-bg: #EFE7D8;
+    --q-ink: #6B5A2E;
+    --a-bg: #E6EFEA;
+    --danger: #B4432C;
+    --danger-bg: #F3E4DE;
+    --code-bg: #EDEAE0;
+    --shadow: 0 1px 2px rgba(30,25,15,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #161B19; --panel: #1F2825; --ink: #E9EFEC; --ink-2: #A9B6B1;
+      --rule: #35413C; --accent: #4FBF9E; --accent-ink: #0D1A16;
+      --q-bg: #33301F; --q-ink: #E2CE8E; --a-bg: #1F2E28;
+      --danger: #E0806A; --danger-bg: #33221D; --code-bg: #26302B;
+      --shadow: 0 1px 2px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #161B19; --panel: #1F2825; --ink: #E9EFEC; --ink-2: #A9B6B1;
+    --rule: #35413C; --accent: #4FBF9E; --accent-ink: #0D1A16;
+    --q-bg: #33301F; --q-ink: #E2CE8E; --a-bg: #1F2E28;
+    --danger: #E0806A; --danger-bg: #33221D; --code-bg: #26302B;
+    --shadow: 0 1px 2px rgba(0,0,0,.35);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, sans-serif;
+    margin: 0; line-height: 1.55;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 36px 20px 90px; }
+
+  header.mast { border-bottom: 2px solid var(--rule); padding-bottom: 22px; margin-bottom: 28px; }
+  .kicker { font-family: "IBM Plex Mono", monospace; font-size: 11.5px; letter-spacing: .09em;
+    text-transform: uppercase; color: var(--accent); margin: 0 0 10px; }
+  h1 { font-size: clamp(26px,4vw,34px); font-weight: 700; margin: 0 0 8px; text-wrap: balance; }
+  .sub { color: var(--ink-2); font-size: 14.5px; margin: 0; max-width: 60ch; }
+
+  .factbar {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(130px,1fr));
+    gap: 1px; background: var(--rule); border: 1px solid var(--rule);
+    border-radius: 8px; overflow: hidden; margin: 22px 0 6px; box-shadow: var(--shadow);
+  }
+  .fact { background: var(--panel); padding: 12px 12px; }
+  .fact .num { font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 18px; color: var(--accent);
+    font-variant-numeric: tabular-nums; display: block; }
+  .fact .lbl { font-size: 11px; color: var(--ink-2); line-height: 1.3; margin-top: 3px; display: block; }
+
+  section.block { margin: 40px 0; }
+  h2.h {
+    font-size: 12px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700;
+    color: var(--ink-2); font-family: "IBM Plex Mono", monospace; margin: 0 0 4px;
+    display: flex; align-items: baseline; gap: 8px;
+  }
+  h2.h .n { color: var(--accent); }
+  h1.bt { font-size: 22px; font-weight: 700; margin: 2px 0 16px; }
+
+  .pitch {
+    background: var(--panel); border: 1px solid var(--rule); border-left: 4px solid var(--accent);
+    border-radius: 0 10px 10px 0; padding: 18px 20px; font-size: 15.5px; box-shadow: var(--shadow);
+  }
+  .pitch p { margin: 0 0 10px; }
+  .pitch p:last-child { margin-bottom: 0; }
+
+  h3.step {
+    font-size: 15.5px; font-weight: 600; margin: 22px 0 6px;
+    display: flex; align-items: center; gap: 9px;
+  }
+  h3.step .dot {
+    width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: var(--accent-ink);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-family: "IBM Plex Mono", monospace; font-size: 11.5px; font-weight: 600; flex: none;
+  }
+  p, li { font-size: 14.5px; max-width: 68ch; }
+  p { margin: 0 0 10px; }
+  ul { margin: 0 0 14px; padding-left: 20px; }
+  li { margin-bottom: 4px; }
+  code { font-family: "IBM Plex Mono", monospace; font-size: 12.5px; background: var(--code-bg);
+    padding: 1px 5px; border-radius: 4px; }
+
+  .qa {
+    background: var(--panel); border: 1px solid var(--rule); border-radius: 10px;
+    margin-bottom: 14px; overflow: hidden; box-shadow: var(--shadow);
+  }
+  .qa-head {
+    display: flex; align-items: flex-start; gap: 10px; padding: 13px 16px;
+    background: var(--q-bg); border-bottom: 1px solid var(--rule);
+  }
+  .qa-head.hot { background: var(--danger-bg); }
+  .qtag {
+    font-family: "IBM Plex Mono", monospace; font-size: 10px; letter-spacing: .05em;
+    text-transform: uppercase; font-weight: 600; color: var(--q-ink); flex: none;
+    background: rgba(0,0,0,.06); padding: 2px 7px; border-radius: 4px; margin-top: 2px;
+  }
+  .qa-head.hot .qtag { color: var(--danger); }
+  .qtext { font-weight: 600; font-size: 14.5px; }
+  .qa-body { padding: 13px 16px; }
+  .qa-body p { margin: 0 0 8px; font-size: 14px; }
+  .qa-body p:last-child { margin-bottom: 0; }
+  .qa-body .lead { color: var(--ink-2); font-size: 12px; text-transform: uppercase;
+    letter-spacing: .04em; font-family: "IBM Plex Mono", monospace; margin: 0 0 4px; }
+
+  table { border-collapse: collapse; width: 100%; font-size: 13px; background: var(--panel);
+    box-shadow: var(--shadow); border-radius: 8px; overflow: hidden; margin: 8px 0 16px; }
+  .twrap { overflow-x: auto; }
+  th, td { padding: 7px 10px; border-bottom: 1px solid var(--rule); text-align: left;
+    font-variant-numeric: tabular-nums; }
+  thead th { background: var(--q-bg); font-weight: 600; }
+  tbody tr:last-child td { border-bottom: none; }
+
+  footer.foot { border-top: 1px solid var(--rule); margin-top: 30px; padding-top: 16px;
+    font-size: 12.5px; color: var(--ink-2); }
+
+  @media (max-width: 500px) {
+    .factbar { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+
+<div class="wrap">
+  <header class="mast">
+    <p class="kicker">Presentation prep — Sept 23 review</p>
+    <h1>Explain It, Then Defend It</h1>
+    <p class="sub">A working cheat sheet for tomorrow: a plain-language walkthrough you can say out loud, then the questions most likely to come back at you — each with the honest answer, not a dodge.</p>
+    <div class="factbar">
+      <div class="fact"><span class="num">4/4</span><span class="lbl">FS events with working controllers</span></div>
+      <div class="fact"><span class="num">4</span><span class="lbl">upstream simulator bugs found</span></div>
+      <div class="fact"><span class="num">100%</span><span class="lbl">skidpad success ≤8°/√min drift</span></div>
+      <div class="fact"><span class="num">0.33m</span><span class="lbl">real-sim error vs. 0.32m predicted</span></div>
+      <div class="fact"><span class="num">1</span><span class="lbl">shared dependency: eufs_msgs only</span></div>
+    </div>
+  </header>
+
+  <section class="block">
+    <h2 class="h"><span class="n">§1</span> The 60-second pitch</h2>
+    <h1 class="bt">Say this first, before anything technical</h1>
+    <div class="pitch">
+      <p><strong>"We're building the software that drives a Formula Student Driverless car — not the car itself."</strong> Last semester we planned the hardware: which LiDAR, which microcontroller, which detector. That plan still stands. But none of that software can actually be tested until the hardware exists, and by then it's too late to find out the control logic is wrong.</p>
+      <p>So this phase, we built and tested the full autonomy stack — one controller per FS Driverless event, a state estimator, and a statistical test suite — entirely in simulation, but built so it plugs into real hardware later with <em>zero code changes</em>. We didn't just demo it working once; we ran it hundreds of times under injected sensor noise and measured exactly how much drift it can tolerate before it fails.</p>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2 class="h"><span class="n">§2</span> Explain — the walkthrough</h2>
+    <h1 class="bt">Talk through it in this order</h1>
+
+    <h3 class="step"><span class="dot">1</span> Why we pivoted</h3>
+    <p>Hardware-first means the autonomy code is the last thing tested, on the least forgiving platform (a real car, competition deadline looming). We flipped the order: build the software against a simulator that publishes the exact same ROS 2 topics real hardware will, so the switch to hardware is a driver-node swap, not a rewrite.</p>
+
+    <h3 class="step"><span class="dot">2</span> The one-dependency rule</h3>
+    <p>Our code (<code>fs_autonomy</code>) depends on the simulator for exactly one thing: <code>eufs_msgs</code>, the message definitions — nothing else. It never imports simulator internals. That's what makes "deploy to a Jetson unchanged" a real claim and not a slogan.</p>
+
+    <h3 class="step"><span class="dot">3</span> Mission-gating — how four controllers share one launch</h3>
+    <p>The simulator never runs our code; it only announces the selected mission and state (<code>AMIState: SKIDPAD, ASState: DRIVING</code>). Every controller watches that topic and self-activates only when it's both selected and cleared to drive. So one launch file holds all four controllers, and picking a mission in the sim is what decides which one actually drives.</p>
+
+    <h3 class="step"><span class="dot">4</span> The four controllers, one line each</h3>
+    <ul>
+      <li><strong>Acceleration</strong> — closed-loop speed control, timed brake at the line.</li>
+      <li><strong>Skidpad</strong> — pure-pursuit steering around a known figure-eight.</li>
+      <li><strong>Trackdrive</strong> — perception-based pure pursuit; steers at the midpoint of the nearest blue/yellow cone pair, counts laps by watching for the orange gate.</li>
+      <li><strong>Autocross</strong> — same code as Trackdrive, one lap instead of many.</li>
+    </ul>
+
+    <h3 class="step"><span class="dot">5</span> Why closed-loop, not just "send a speed"</h3>
+    <p>We found the simulator's vehicle model silently ignores a directly commanded speed — it only reads acceleration and steering angle. Command <code>speed: 0</code> and the car coasts, it doesn't brake. So every controller measures actual speed and corrects it continuously (P-control) instead of trusting an open-loop command.</p>
+
+    <h3 class="step"><span class="dot">6</span> State estimation (EKF)</h3>
+    <p>We fuse IMU yaw-rate/acceleration with wheel-odometry-derived speed through an Extended Kalman Filter, replacing raw simulated ground-truth with a realistic filtered pose estimate — the same kind of estimate real IMU/wheel-encoder hardware would produce, with real noise and drift.</p>
+
+    <h3 class="step"><span class="dot">7</span> Why we test with a cheap model instead of only the full simulator</h3>
+    <p>The full simulator is too slow to run hundreds of times. So each mission also has a lightweight software-in-the-loop (SIL) harness — same controller code, a cheap physics stand-in — with injectable sensor errors (dropout, noise, false positives, latency, drift). We checked this cheap model isn't lying to us: it predicted 0.32 m of skidpad tracking error under measured drift; the real, expensive simulator measured 0.33 m under the same conditions. That's the validation that lets us trust the fast tests.</p>
+
+    <h3 class="step"><span class="dot">8</span> The statistics, in one sentence</h3>
+    <p>We ran 8 independent seeded episodes at each of six odometry-drift levels and computed a 95% confidence interval (Wilson score, the standard method for small-sample pass/fail data) on the success rate at each level — not just "it passed once."</p>
+  </section>
+
+  <section class="block">
+    <h2 class="h"><span class="n">§3</span> Defend — anticipated questions</h2>
+    <h1 class="bt">The ones most likely to come back at you</h1>
+
+    <div class="qa">
+      <div class="qa-head hot"><span class="qtag">Hardest</span><span class="qtext">Why should we believe simulation results transfer to a real car?</span></div>
+      <div class="qa-body">
+        <p class="lead">Answer</p>
+        <p>Two separate reasons, don't blur them. First, the <em>architecture</em>: our code has exactly one dependency on the simulator (message definitions), so nothing about the control logic is simulator-specific — swapping in real driver nodes is a topic-level substitution, not a rewrite. Second, the <em>estimator</em>: we didn't just trust simulated ground truth — we fused realistic IMU/wheel noise through an EKF, and validated our cheap test model against the full simulator to within 0.01 m. We're not claiming sim-to-real is solved; we're claiming the software we tested doesn't know it's in a simulator, which is the honest, defensible version of that claim.</p>
+      </div>
+    </div>
+
+    <div class="qa">
+      <div class="qa-head hot"><span class="qtag">Hardest</span><span class="qtext">n=8 per point — isn't that too small to mean anything?</span></div>
+      <div class="qa-body">
+        <p class="lead">Answer</p>
+        <p>It's small, and we say so explicitly — that's exactly why we report a confidence interval instead of a bare percentage. At n=8, 100% success has a 95% CI of 67.6–100%, not "100%, done." The finding we actually stand behind is the <em>shape</em> across the sweep: success stays flat through 8°/√min and only degrades at the extreme end, and the worst-case error grows sharply while the median stays low — a pattern that's visible even with wide individual intervals. Tightening the interval is on our future-work list; it costs roughly 4× the episodes to halve the margin, which is a compute/time tradeoff, not a methodology flaw.</p>
+      </div>
+    </div>
+
+    <div class="qa">
+      <div class="qa-head"><span class="qtag">Scope</span><span class="qtext">You dropped the hardware plan — isn't that a step backward?</span></div>
+      <div class="qa-body">
+        <p class="lead">Answer</p>
+        <p>We didn't drop it, we resequenced it. The hardware selections from last semester (VCU, LiDAR) still stand as the target platform. What changed is what gets built <em>first</em>: the software that has to be correct on day one of hardware bring-up, tested statistically instead of once. That's lower risk, not less ambition.</p>
+      </div>
+    </div>
+
+    <div class="qa">
+      <div class="qa-head"><span class="qtag">Scope</span><span class="qtext">Trackdrive isn't validated in the full simulator — isn't that a gap?</span></div>
+      <div class="qa-body">
+        <p class="lead">Answer</p>
+        <p>Yes, and it's the one honest gap we're flagging ourselves rather than waiting to be caught on. The controller is complete and verified in the SIL harness — multi-lap completion, correct non-duplicated lap counting under dropout — but hasn't yet been run on a real track map in the full simulator, the step already done for Acceleration and Skidpad. It's next on the list, not blocked on anything.</p>
+      </div>
+    </div>
+
+    <div class="qa">
+      <div class="qa-head"><span class="qtag">Novelty</span><span class="qtext">Isn't eufs_sim2 already the simulator — what did you actually build?</span></div>
+      <div class="qa-body">
+        <p class="lead">Answer</p>
+        <p>eufs_sim2 is the empty stage — it has no autonomy in it at all; a car sitting in it does nothing unless something publishes drive commands. We built everything that makes it drive: four mission controllers, the state estimator, the SIL test harnesses with an injectable error model, and the Monte-Carlo statistical methodology. We also found and documented four real defects in eufs_sim2 itself along the way, two of which silently break any team's first integration attempt.</p>
+      </div>
+    </div>
+
+    <div class="qa">
+      <div class="qa-head"><span class="qtag">Rigor</span><span class="qtext">Are the "bugs" you found actually bugs, or just your misunderstanding?</span></div>
+      <div class="qa-body">
+        <p class="lead">Answer</p>
+        <p>Each one is traced to the exact line in the simulator's source, not inferred from behaviour alone — e.g. <code>control.cpp</code> only reads <code>drive.acceleration</code>/<code>steering_angle</code>, never <code>drive.speed</code>; <code>cone_fusion.cpp</code> constructs a publisher for the fused <code>/cones</code> topic but never calls it. Both produce no error message, just silent wrong behaviour, which is why we can point to the exact function and line rather than just describing symptoms.</p>
+      </div>
+    </div>
+
+    <div class="qa">
+      <div class="qa-head"><span class="qtag">Team</span><span class="qtext">What did each of you individually contribute?</span></div>
+      <div class="qa-body">
+        <p class="lead">Answer — fill this in before tomorrow, don't leave it blank on stage</p>
+        <p>All commits currently sit under one shared identity, so have a one-line split ready per person (e.g. mission controllers / state estimation / testing &amp; statistics) even if the git history doesn't show it — examiners ask this every time and "we all did everything" reads as unprepared, not as teamwork.</p>
+      </div>
+    </div>
+
+    <div class="qa">
+      <div class="qa-head"><span class="qtag">Fallback</span><span class="qtext">If you get a question you don't have a clean answer for</span></div>
+      <div class="qa-body">
+        <p class="lead">Answer</p>
+        <p>Say what you actually know, name the boundary honestly ("that's outside what we tested"), and say what the next step to answer it would be. Every "Answer" above does exactly that — none of them claim more than the numbers support. That's the posture to keep live, too.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2 class="h"><span class="n">§4</span> Numbers to have cold</h2>
+    <h1 class="bt">If you remember nothing else, remember this table</h1>
+    <div class="twrap"><table>
+      <thead><tr><th>Claim</th><th>Number</th></tr></thead>
+      <tbody>
+        <tr><td>Skidpad success through 8°/√min yaw drift</td><td>100% (95% CI 67.6–100%, n=8)</td></tr>
+        <tr><td>Skidpad success at 10°/√min (extreme)</td><td>87.5% (95% CI 52.9–97.8%)</td></tr>
+        <tr><td>Worst-case circle error, 0° → 10°/√min</td><td>0.72 m → 3.84 m</td></tr>
+        <tr><td>SIL model prediction vs. real full-sim measurement</td><td>0.32 m predicted vs. 0.33 m measured</td></tr>
+        <tr><td>Upstream simulator defects found &amp; documented</td><td>4 (2 silently break default setup)</td></tr>
+        <tr><td>Shared dependency between our code and the simulator</td><td>1 (<code>eufs_msgs</code> only)</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <footer class="foot">
+    Prep sheet for the Sept 23 progress review · pulled from verified results in <code>docs/PROJECT_HANDOFF.md</code> and the IEEE report content brief. Practice the §1 pitch out loud once before you go in — it's the 15 seconds that decides how the rest of the room listens.
+  </footer>
+</div>
