@@ -1,0 +1,143 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{booktabs}
+\usepackage{textcomp}
+\usepackage{xcolor}
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+\begin{document}
+
+\title{A Simulation-First Development and Validation Platform for a Formula Student Driverless Autonomy Stack}
+
+% -- FILL IN: replace with your actual emails before submitting --
+\author{
+\IEEEauthorblockN{Rishi Satish, Harshvardhan Singh, Ayon Majumdar}
+\IEEEauthorblockA{Department of Electronics and Computer Engineering \\
+K. J. Somaiya School of Engineering, Somaiya Vidyavihar University \\
+Mumbai, India \\
+\{email1, email2, email3\}@somaiya.edu}
+\and
+\IEEEauthorblockN{Makarand Govind Kulkarni}
+\IEEEauthorblockA{Department of Electronics and Computer Engineering \\
+K. J. Somaiya School of Engineering, Somaiya Vidyavihar University \\
+Mumbai, India \\
+makarand.kulkarni@somaiya.edu}
+}
+
+\maketitle
+
+\begin{abstract}
+Formula Student (FS) Driverless teams must validate a full perception-to-control autonomy stack before physical hardware exists, yet most published pipelines assume the sensors and compute are already on the car. This paper presents a simulation-first development and validation platform for FS Driverless, built on ROS~2 Humble and the eufs\_sim2 simulator, that develops, tests, and statistically certifies mission controllers for all four FS Driverless dynamic events -- Acceleration, Skidpad, Autocross, and Trackdrive -- before hardware procurement. The stack is deliberately contained: the autonomy package depends on the simulator for exactly one interface (its ROS~2 message definitions), so the same code that drives the simulated car is designed to drive a Jetson-based vehicle unchanged. Closed-loop proportional speed control, pure-pursuit steering, and perception-gated lap counting were implemented for all four events, and an Extended Kalman Filter (EKF) fusing IMU and wheel odometry was integrated and validated against a lightweight software-in-the-loop (SIL) model of sensor noise. A Monte-Carlo harness with Wilson-score confidence intervals quantified robustness under swept odometry drift, finding 100\% mission success (95\% CI 67.6--100\%, $n{=}8$) up to $8^{\circ}/\sqrt{\text{min}}$ of yaw drift, falling to 87.5\% (CI 52.9--97.8\%) only at $10^{\circ}/\sqrt{\text{min}}$, with worst-case tracking error rising sharply past that point even as the median stays low. Four previously undocumented defects were identified in the upstream eufs\_sim2 simulator, two of which silently break braking and cone perception under its default configuration. The result is a reusable, statistically validated software platform that de-risks the team's hardware phase rather than substituting for it.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Formula Student Driverless, ROS~2, autonomous vehicle simulation, Extended Kalman Filter, sensor fusion, Monte-Carlo testing, pure pursuit control, software-in-the-loop testing.
+\end{IEEEkeywords}
+
+\section{Introduction}
+
+Formula Student (FS) Driverless, run under SAE and IMechE rules, requires a fully autonomous formula-style car to complete four dynamic events on a track delimited by coloured cones: Acceleration (a straight-line sprint), Skidpad (a fixed figure-eight), Autocross (one timed lap of an unseen track), and Trackdrive (ten laps of the same track). Each event exercises a different slice of the autonomy stack: Acceleration stresses closed-loop speed control alone, Skidpad stresses steering against a known geometry, and Autocross/Trackdrive stress the full perception-to-control loop under an unknown track.
+
+A hardware-first development order -- select sensors and compute, then integrate autonomy code once the car exists -- leaves the highest-risk component, the control software, untested for most of a project's timeline. This work instead treats the simulator as the primary development target: every mission controller, the state estimator, and the statistical test suite are built and quantitatively validated in simulation first, against the same ROS~2 topic contract real hardware will eventually publish.
+
+The contributions of this paper are: (1) a hardware-independent ROS~2 autonomy package implementing closed-loop controllers for all four FS Driverless events, gated on the simulator's official Autonomous System (AS) state machine; (2) a software-in-the-loop (SIL) test harness with an injectable sensor-error model for fast, statistically repeatable testing; (3) an EKF state-estimation layer validated by a model-fidelity prediction test; (4) a Monte-Carlo robustness methodology using Wilson-score confidence intervals; and (5) four previously undocumented defects identified in the upstream eufs\_sim2 simulator.
+
+\section{Related Work}
+
+Single-stage detectors such as the YOLO family reformulate object detection as one regression pass and are the practical choice for real-time, embedded cone detection over two-stage detectors such as Faster R-CNN \cite{redmon2016}, with the FSOCO dataset providing an FS-specific benchmark \cite{bulter2021}. Graph-based SLAM using cone observations as landmarks is the dominant localisation approach for FS Driverless vehicles \cite{cadena2016}, and Pure Pursuit remains the standard path-tracking control law for cone-delimited tracks \cite{coulter1992}.
+
+Software- and hardware-in-the-loop testing is well established in robotics for validating autonomy logic against injected sensor faults before physical trials, and EKF fusion of inertial and odometric measurements -- as implemented in ROS's \texttt{robot\_localization} package \cite{moore2016} -- remains the standard low-cost approach to state estimation where LiDAR/visual odometry is reserved for perception rather than pose. This work's contribution relative to that literature is not a new estimator, but a validated, reusable instance of both, purpose-built for the FS Driverless topic contract, together with a statistical rather than anecdotal robustness methodology.
+
+\section{System Architecture}
+\label{sec:architecture}
+
+\subsection{Containment}
+The autonomy package (\texttt{fs\_autonomy}) has no build dependency on the eufs\_sim2 simulator itself; its only link to the simulation stack is \texttt{eufs\_msgs}, a pure ROS~2 message-definition package shared by both the simulator and future hardware driver nodes. Every controller consumes only sensor-agnostic topics -- pose/odometry, cone detections, IMU, and the AS state string -- and emits only an Ackermann drive command. Because the simulator publishes the identical topic graph a set of real driver nodes would, replacing the simulator process with hardware nodes requires no change to the autonomy code.
+
+\subsection{Mission Gating}
+The simulator never launches user code; it only reports the selected mission and state via \texttt{/sim/ros\_can/state\_str} (e.g. \texttt{AMIState: SKIDPAD, ASState: DRIVING}). Every controller subscribes to this topic and self-gates: it activates only when its own mission is selected and the state machine has reached \texttt{DRIVING}. This lets all four controllers run under one launch file, with mission selection alone deciding which engages.
+
+\subsection{Mission Controllers}
+Table~\ref{tab:controllers} summarises the four controllers. Speed control is closed-loop rather than open-loop because the simulator's vehicle model reads only an acceleration and steering-angle command from \texttt{/cmd} -- a directly commanded target speed is silently ignored (Section~\ref{sec:results}, Defect~1). Trackdrive and Autocross count laps from perception of the start/finish ``big orange'' gate pair rather than odometry, debounced by a cooldown and a sustained-absence dwell period to prevent both premature re-triggering and double-counting under detection dropout.
+
+\begin{table}[t]
+\centering
+\caption{Mission controllers implemented}
+\label{tab:controllers}
+\begin{tabular}{@{}p{1.5cm}p{4cm}p{1.6cm}@{}}
+\toprule
+\textbf{Event} & \textbf{Control strategy} & \textbf{Perception} \\
+\midrule
+Acceleration & Closed-loop P speed control, timed brake at finish & None \\
+Skidpad & Pure Pursuit around a fixed figure-eight & None \\
+Trackdrive & Perception-based Pure Pursuit on nearest cone-pair midpoint & Per lap \\
+Autocross & Trackdrive code, single-lap configuration & Per lap \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Methodology}
+
+\subsection{Simulation Environment}
+Development and testing run against eufs\_sim2 on ROS~2 Humble/Ubuntu~22.04, which publishes a 3-DOF dynamic bicycle vehicle model with child sensor-plugin nodes (LiDAR, depth camera, IMU, GPS, wheel speed) and the official AS state machine, visualised via Foxglove.
+
+\subsection{State Estimation}
+An EKF (via \texttt{robot\_localization}) fuses IMU yaw-rate and linear acceleration with wheel-odometry-derived forward velocity into a filtered pose estimate, replacing raw simulated ground truth as the controller's position input. LiDAR and camera measurements are deliberately excluded from fusion at this stage and remain simulated ground-truth passthroughs; perception-derived pose correction is future work.
+
+\subsection{Software-in-the-Loop Harnesses}
+Because the full simulator is too slow to run at statistical scale, each mission has a lightweight SIL harness -- a kinematic-bicycle physics substitute driven by the same controller code -- with an injectable error model: distance-bucketed detection probability, bearing/range noise, cone colour-flip, Poisson-sampled false positives, latency, and seeded random-walk odometry drift, each on an independent noise stream. The Trackdrive harness's error model can be loaded from a real detector's measured error profile rather than an assumed one, though this has not yet been exercised with a trained detector.
+
+\subsection{Monte-Carlo Methodology}
+Mission success across a swept parameter is estimated from $n$ independent, seeded episodes per value, each run under a rotated ROS~2 DDS domain ID to prevent cross-episode interference. Because each episode is a Bernoulli pass/fail trial, the 95\% confidence interval is computed with the Wilson score interval \cite{wilson1927} rather than the naive normal approximation, since Wilson stays bounded in $[0,1]$ and remains well-behaved at small $n$ or success rates near 0\%/100\%.
+
+\section{Results}
+\label{sec:results}
+
+All four controllers were verified end-to-end in their SIL harnesses; Acceleration and Skidpad were additionally demonstrated in the full simulator. Table~\ref{tab:sweep} reports the Skidpad odometry-drift sweep.
+
+\begin{table}[t]
+\centering
+\caption{Skidpad success vs.\ odometry yaw drift ($n{=}8$/point)}
+\label{tab:sweep}
+\begin{tabular}{@{}ccccc@{}}
+\toprule
+Drift ($^{\circ}/\sqrt{\text{min}}$) & Success & 95\% CI & Med.\ err.\ (m) & Worst (m) \\
+\midrule
+0 & 100\% & 67.6--100\% & 0.05 & 0.72 \\
+2--6 & 100\% & 67.6--100\% & 0.1--0.2 & 0.8--1.8 \\
+8 & 100\% & 67.6--100\% & 0.35 & 2.6 \\
+10 & 87.5\% & 52.9--97.8\% & 0.44 & 3.84 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Success stays at 100\% through $8^{\circ}/\sqrt{\text{min}}$ and drops only at the extreme $10^{\circ}/\sqrt{\text{min}}$ setting. Median circle-tracking error grows gently across the sweep, but worst-case error grows sharply past $8^{\circ}/\sqrt{\text{min}}$ -- the median stays robust while the tail is where the system actually breaks, which is the figure a safety margin should be set against.
+
+To validate the SIL model against the full simulator, the SIL Skidpad model's predicted mean circle-tracking error under the EKF's measured drift (0.32~m) was compared against a direct full-simulator measurement under the same conditions (0.33~m), a 0.01~m difference.
+
+Four defects were identified in eufs\_sim2 during development: (1) \texttt{control.cpp} reads only \texttt{drive.acceleration}/\texttt{steering\_angle} from \texttt{/cmd}, silently ignoring \texttt{drive.speed}; (2) \texttt{cone\_fusion.cpp} constructs but never calls the fused \texttt{/cones} publisher, so the documented fused-cone topic is permanently empty (\texttt{/cones/lenient} is the real feed); (3) \texttt{/ros\_can/twist} has scrambled angular axes and zero covariance, unsafe to fuse directly; (4) the IMU plugin's default noise covariance is set to identity, understating achievable EKF accuracy until raised to sensor-realistic values. Defects 1 and 2 are silent and would block a first integration attempt using the simulator's advertised default topics.
+
+\section{Discussion}
+
+A simulation-first platform lets the highest-risk software be exercised and statistically characterised hundreds of times before a single sensor is procured. The result in Table~\ref{tab:sweep} -- robust to $8^{\circ}/\sqrt{\text{min}}$ of drift with tail risk growing sharply beyond it -- is not obtainable from a handful of manual test drives and directly informs the specification the team should write for its IMU and wheel-encoder hardware. The defects found further show that even a widely used open-source simulator cannot be trusted uncritically; the containment architecture (Section~\ref{sec:architecture}A) that lets this platform swap the simulator for hardware without code changes is the same property that made isolating those defects tractable.
+
+\section{Conclusion and Future Work}
+
+This paper presented a simulation-first autonomy platform for FS Driverless, covering closed-loop mission control for all four dynamic events, EKF-based state estimation validated by a model-fidelity test, and a Monte-Carlo methodology reporting confidence-interval-backed success rates rather than anecdotal demonstrations. Four defects were found and documented in the upstream simulator. Because the platform's only coupling to the simulator is a shared message-definition package, the validated software is designed to transfer to physical hardware unchanged.
+
+Future work: (1) deploy the unchanged stack to an NVIDIA Jetson, replacing the simulator with real driver nodes as a direct test of the containment claim; (2) exercise the SIL harness's error-profile loader against a real trained detector rather than synthetic noise; (3) extend the EKF to fuse perception-derived landmark corrections; (4) run the Monte-Carlo sweeps as an automated CI regression suite; (5) submit upstream merge requests for the four documented eufs\_sim2 defects; (6) complete full-simulator validation of Trackdrive and Autocross on a real track map, matching the validation already done for Acceleration and Skidpad.
+
+\begin{thebibliography}{00}
+\bibitem{redmon2016} J. Redmon, S. Divvala, R. Girshick, and A. Farhadi, ``You only look once: Unified, real-time object detection,'' in \textit{Proc. IEEE Conf. Computer Vision and Pattern Recognition (CVPR)}, 2016, pp. 779--788.
+\bibitem{bulter2021} M. B\"ulter \textit{et al.}, ``FSOCO: The Formula Student objects in context dataset,'' in \textit{Proc. IEEE Intelligent Vehicles Symposium (IV)}, 2021.
+\bibitem{cadena2016} C. Cadena \textit{et al.}, ``Past, present, and future of simultaneous localization and mapping: Toward the robust-perception age,'' \textit{IEEE Trans. Robotics}, vol. 32, no. 6, pp. 1309--1332, 2016.
+\bibitem{coulter1992} R. C. Coulter, ``Implementation of the pure pursuit path tracking algorithm,'' Carnegie Mellon Univ., Robotics Institute, Tech. Rep. CMU-RI-TR-92-01, 1992.
+\bibitem{wilson1927} E. B. Wilson, ``Probable inference, the law of succession, and statistical inference,'' \textit{J. American Statistical Association}, vol. 22, no. 158, pp. 209--212, 1927.
+\bibitem{moore2016} T. Moore and D. Stouch, ``A generalized extended Kalman filter implementation for the Robot Operating System,'' in \textit{Intelligent Autonomous Systems 13}. Springer, 2016, pp. 335--348.
+\end{thebibliography}
+
+\end{document}
