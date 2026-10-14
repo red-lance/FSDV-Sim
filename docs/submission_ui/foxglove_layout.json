@@ -1,0 +1,92 @@
+{
+  "configById": {
+    "RawMessages!predrive_state": {
+      "topicPath": "/sim/ros_can/state_str",
+      "fontSize": 14,
+      "title": "Mission / AS State"
+    },
+    "Log!predrive_log": {
+      "searchTerms": [],
+      "minLogLevel": 1,
+      "title": "System Log"
+    },
+    "3D!drive_scene": {
+      "layers": {
+        "cones": { "visible": true, "topic": "/cones_viz" },
+        "tf": { "visible": true },
+        "grid": { "visible": true }
+      },
+      "cameraState": { "distance": 25, "perspective": true, "targetOffset": [0, 0, 0] },
+      "followTf": "base_link",
+      "title": "3D Track View (cones + car pose)"
+    },
+    "Plot!drive_speed": {
+      "paths": [
+        { "value": "/odometry/filtered.twist.twist.linear.x", "label": "estimated speed" },
+        { "value": "/cmd.drive.acceleration", "label": "commanded accel" }
+      ],
+      "minYValue": -5,
+      "maxYValue": 10,
+      "title": "Speed Tracking"
+    },
+    "RawMessages!drive_cmd": {
+      "topicPath": "/cmd",
+      "fontSize": 13,
+      "title": "Drive Command Output"
+    },
+    "Plot!diag_ekf_error": {
+      "paths": [
+        { "value": "/odometry/filtered.pose.pose.position.x", "label": "EKF x" },
+        { "value": "/odom.pose.pose.position.x", "label": "ground truth x" }
+      ],
+      "title": "EKF vs Ground Truth (diagnostics)"
+    },
+    "Indicator!diag_lap_count": {
+      "topicPath": "/trackdrive/lap_count",
+      "fallbackColor": "#808080",
+      "title": "Lap Counter"
+    },
+    "Tab!root": {
+      "activeTabIdx": 1,
+      "tabs": [
+        {
+          "title": "1. Pre-Drive",
+          "layout": {
+            "first": "RawMessages!predrive_state",
+            "second": "Log!predrive_log",
+            "direction": "row",
+            "splitPercentage": 45
+          }
+        },
+        {
+          "title": "2. Drive View",
+          "layout": {
+            "first": "3D!drive_scene",
+            "second": {
+              "first": "Plot!drive_speed",
+              "second": "RawMessages!drive_cmd",
+              "direction": "column",
+              "splitPercentage": 60
+            },
+            "direction": "row",
+            "splitPercentage": 65
+          }
+        },
+        {
+          "title": "3. Diagnostics",
+          "layout": {
+            "first": "Plot!diag_ekf_error",
+            "second": "Indicator!diag_lap_count",
+            "direction": "column",
+            "splitPercentage": 80
+          }
+        }
+      ]
+    }
+  },
+  "globalVariables": {},
+  "userNodes": {},
+  "linkedGlobalVariables": [],
+  "playbackConfig": { "speed": 1 },
+  "layout": "Tab!root"
+}
