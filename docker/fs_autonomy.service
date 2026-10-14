@@ -1,0 +1,17 @@
+# Boot-time start-up for fs_autonomy on a deployed Jetson.
+# Install:  sudo cp docker/fs_autonomy.service /etc/systemd/system/
+#           sudo systemctl enable --now fs_autonomy
+[Unit]
+Description=fs_autonomy ROS 2 autonomy stack
+After=network.target docker.service
+Requires=docker.service
+
+[Service]
+Restart=on-failure
+RestartSec=5
+WorkingDirectory=/opt/fs_autonomy
+ExecStart=/usr/bin/docker compose -f docker/docker-compose.yml up
+ExecStop=/usr/bin/docker compose -f docker/docker-compose.yml down
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,22 @@
+# Deployment/config file for fs_autonomy -- same image builds and runs
+# unchanged on the dev VM (x86_64) or an NVIDIA Jetson (arm64, JetPack 6).
+#
+#   docker compose -f docker/docker-compose.yml up --build
+#
+services:
+  fs_autonomy:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: fs_autonomy:latest
+    container_name: fs_autonomy
+    network_mode: host   # ROS 2 DDS discovery + foxglove_bridge need host networking
+    ipc: host
+    restart: unless-stopped
+    environment:
+      - ROS_DOMAIN_ID=42          # isolate from other ROS graphs on the same network
+      - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+    volumes:
+      # mount config read-only so params can be tuned on the target without rebuilding the image
+      - ../src/fs_autonomy/config:/ws/src/fs_autonomy/config:ro
+    command: ["ros2", "launch", "fs_autonomy", "autonomy.launch.py"]
