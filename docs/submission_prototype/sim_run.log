@@ -1,0 +1,35 @@
+Running EUFS Sim...
+[INFO] [launch]: All log files can be found below /home/lyproject/.ros/log/2026-10-16-22-43-50-504499-lyproject-VirtualBox-2778
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [robot_state_publisher-1]: process started with pid [2779]
+[INFO] [eufs_sim2_node-2]: process started with pid [2781]
+[INFO] [trackdrive.csv"}'-3]: process started with pid [2783]
+[robot_state_publisher-1] [INFO] [1792170830.786197070] [robot_state_publisher]: got segment base_footprint
+[robot_state_publisher-1] [INFO] [1792170830.786364597] [robot_state_publisher]: got segment chassis
+[robot_state_publisher-1] [INFO] [1792170830.786374160] [robot_state_publisher]: got segment gps_base_link
+[robot_state_publisher-1] [INFO] [1792170830.786379513] [robot_state_publisher]: got segment imu_base_link
+[robot_state_publisher-1] [INFO] [1792170830.786384354] [robot_state_publisher]: got segment left_front_wheel
+[robot_state_publisher-1] [INFO] [1792170830.786389026] [robot_state_publisher]: got segment left_rear_wheel
+[robot_state_publisher-1] [INFO] [1792170830.786393556] [robot_state_publisher]: got segment left_steering_hinge
+[robot_state_publisher-1] [INFO] [1792170830.786404111] [robot_state_publisher]: got segment right_front_wheel
+[robot_state_publisher-1] [INFO] [1792170830.786410626] [robot_state_publisher]: got segment right_rear_wheel
+[robot_state_publisher-1] [INFO] [1792170830.786417293] [robot_state_publisher]: got segment right_steering_hinge
+[robot_state_publisher-1] [INFO] [1792170830.786422074] [robot_state_publisher]: got segment velodyne
+[robot_state_publisher-1] [INFO] [1792170830.786426675] [robot_state_publisher]: got segment velodyne_base_link
+[robot_state_publisher-1] [INFO] [1792170830.786431186] [robot_state_publisher]: got segment zed_camera_center
+[robot_state_publisher-1] [INFO] [1792170830.786435526] [robot_state_publisher]: got segment zed_depth_camera_frame
+[robot_state_publisher-1] [INFO] [1792170830.786440477] [robot_state_publisher]: got segment zed_left_camera_frame
+[robot_state_publisher-1] [INFO] [1792170830.786444879] [robot_state_publisher]: got segment zed_left_camera_optical_frame
+[robot_state_publisher-1] [INFO] [1792170830.786449449] [robot_state_publisher]: got segment zed_right_camera_frame
+[robot_state_publisher-1] [INFO] [1792170830.786453910] [robot_state_publisher]: got segment zed_right_camera_optical_frame
+[eufs_sim2_node-2] [INFO] [1792170830.786343628] [eufs_sim2]: State machine plugin initialised!
+[eufs_sim2_node-2] [INFO] [1792170830.790017249] [eufs_sim2]: Vehicle State Plugin Initialised!
+[eufs_sim2_node-2] [INFO] [1792170830.795035492] [eufs_sim2]: wheel_speed_plugin plugin initialised!
+[eufs_sim2_node-2] [INFO] [1792170830.796574295] [eufs_sim2]: GNSS plugin initialised!
+[eufs_sim2_node-2] [INFO] [1792170830.797869550] [eufs_sim2]: oss_plugin plugin initialised!
+[eufs_sim2_node-2] [INFO] [1792170830.799115859] [eufs_sim2]: imu_plugin plugin initialised!
+[eufs_sim2_node-2] [INFO] [1792170830.808575285] [eufs_sim2]: Cone Fusion Plugin Initialised!
+[eufs_sim2_node-2] [INFO] [1792170830.811039255] [eufs_sim2]: Cone Collision Tracker Plugin initialised!
+[eufs_sim2_node-2] [INFO] [1792170831.255343436] [eufs_sim2]: Map changed!
+[eufs_sim2_node-2] [INFO] [1792170831.256065961] [eufs_sim2]: Track Grid changed!
+[INFO] [trackdrive.csv"}'-3]: process has finished cleanly [pid 2783]

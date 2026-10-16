@@ -1,0 +1,64 @@
+[INFO] [launch]: All log files can be found below /home/lyproject/.ros/log/2026-10-16-22-44-24-787694-lyproject-VirtualBox-2887
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [wait_for_sim-1]: process started with pid [2905]
+[INFO] [static_transform_publisher-2]: process started with pid [2907]
+[INFO] [wheel_odometry-3]: process started with pid [2910]
+[INFO] [imu_frontend-4]: process started with pid [2912]
+[INFO] [ekf_node-5]: process started with pid [2914]
+[INFO] [cone_viz-6]: process started with pid [2916]
+[INFO] [accel_driver-7]: process started with pid [2918]
+[INFO] [skidpad_driver-8]: process started with pid [2920]
+[INFO] [trackdrive_driver-9]: process started with pid [2922]
+[INFO] [trackdrive_driver-10]: process started with pid [2924]
+[wait_for_sim-1] waiting for the sim (/eufs_sim2/get_map)...
+[static_transform_publisher-2] [INFO] [1792170865.033006839] [imu_tf]: Spinning until stopped - publishing transform
+[static_transform_publisher-2] translation: ('0.000000', '0.000000', '0.000000')
+[static_transform_publisher-2] rotation: ('0.000000', '0.000000', '0.000000', '1.000000')
+[static_transform_publisher-2] from 'base_footprint' to 'imu'
+[wait_for_sim-1] sim is up -- starting foxglove_bridge.
+[INFO] [wait_for_sim-1]: process has finished cleanly [pid 2905]
+[trackdrive_driver-9] [INFO] [1792170865.772015409] [trackdrive_driver]: Waiting for TRACK_DRIVE + DRIVING. 10 lap(s), target_speed=4.0 m/s
+[wheel_odometry-3] [INFO] [1792170865.774303581] [wheel_odometry]: wheel_odometry up: radius=0.2525 m, unit=rps
+[INFO] [foxglove_bridge-11]: process started with pid [3018]
+[trackdrive_driver-10] [INFO] [1792170865.810595296] [autocross_driver]: Waiting for AUTOCROSS + DRIVING. 1 lap(s), target_speed=4.0 m/s
+[skidpad_driver-8] [INFO] [1792170865.870146779] [skidpad_driver]: Waiting for SKIDPAD + DRIVING. entry=9.8 m, R=9.25 m, 2x2 laps, exit=22.0 m
+[cone_viz-6] [INFO] [1792170865.898956983] [cone_viz]: Republishing /map -> /cones_viz
+[accel_driver-7] [INFO] [1792170865.899088384] [accel_driver]: Waiting for ACCELERATION + DRIVING. target_speed=8.0 m/s, finish=75.0 m
+[foxglove_bridge-11] [INFO] [1792170865.949779735] [foxglove_bridge]: Starting foxglove_bridge (humble, 3.2.5@)
+[foxglove_bridge-11] [INFO] [1792170865.980738018] [foxglove_bridge]: Server listening on port 8765
+[foxglove_bridge-11] [INFO] [1792170865.996309434] [foxglove_bridge]: Advertising new channel 1 for topic "/tf_static"
+[foxglove_bridge-11] [INFO] [1792170865.997877606] [foxglove_bridge]: Advertising new channel 2 for topic "/tf"
+[foxglove_bridge-11] [INFO] [1792170866.005553730] [foxglove_bridge]: Advertising new channel 3 for topic "/sim/ros_can/state_str"
+[foxglove_bridge-11] [INFO] [1792170866.012130192] [foxglove_bridge]: Advertising new channel 4 for topic "/parameter_events"
+[foxglove_bridge-11] [INFO] [1792170866.016674510] [foxglove_bridge]: Advertising new channel 5 for topic "/odom"
+[foxglove_bridge-11] [INFO] [1792170866.017194484] [foxglove_bridge]: Advertising new channel 6 for topic "/rosout"
+[foxglove_bridge-11] [INFO] [1792170866.017232675] [foxglove_bridge]: Advertising new channel 7 for topic "/robot_description"
+[foxglove_bridge-11] [INFO] [1792170866.018429787] [foxglove_bridge]: Advertising new channel 8 for topic "/imu/data_cov"
+[foxglove_bridge-11] [INFO] [1792170866.018996943] [foxglove_bridge]: Advertising new channel 9 for topic "/eufs/joint_states"
+[foxglove_bridge-11] [INFO] [1792170866.021404980] [foxglove_bridge]: Advertising new channel 10 for topic "/cmd"
+[foxglove_bridge-11] [INFO] [1792170866.022889223] [foxglove_bridge]: Advertising new channel 11 for topic "/cones/lenient"
+[foxglove_bridge-11] [INFO] [1792170866.024091347] [foxglove_bridge]: Advertising new channel 12 for topic "/clock"
+[foxglove_bridge-11] [INFO] [1792170866.200017581] [foxglove_bridge]: Advertising new channel 13 for topic "/wheel_odometry/twist"
+[foxglove_bridge-11] [INFO] [1792170866.200364975] [foxglove_bridge]: Advertising new channel 14 for topic "/set_pose"
+[foxglove_bridge-11] [INFO] [1792170866.200395849] [foxglove_bridge]: Advertising new channel 15 for topic "/ros_can/twist"
+[foxglove_bridge-11] [INFO] [1792170866.201237336] [foxglove_bridge]: Advertising new channel 16 for topic "/ros_can/mission_completed"
+[foxglove_bridge-11] [INFO] [1792170866.201288367] [foxglove_bridge]: Advertising new channel 17 for topic "/plugin/cone_collision_tracker/colliding_cones"
+[foxglove_bridge-11] [INFO] [1792170866.201308846] [foxglove_bridge]: Advertising new channel 18 for topic "/odometry/filtered"
+[foxglove_bridge-11] [INFO] [1792170866.202396378] [foxglove_bridge]: Advertising new channel 19 for topic "/plugin/gnss_plugin/fix"
+[foxglove_bridge-11] [INFO] [1792170866.202430339] [foxglove_bridge]: Advertising new channel 20 for topic "/plugin/cone_collision_tracker/in_range_cones"
+[foxglove_bridge-11] [INFO] [1792170866.202483003] [foxglove_bridge]: Advertising new channel 21 for topic "/lidar_grid/cones"
+[foxglove_bridge-11] [INFO] [1792170866.202505867] [foxglove_bridge]: Advertising new channel 22 for topic "/imu/data"
+[foxglove_bridge-11] [INFO] [1792170866.203635900] [foxglove_bridge]: Advertising new channel 23 for topic "/ros_can/wheel_speeds"
+[foxglove_bridge-11] [INFO] [1792170866.203673229] [foxglove_bridge]: Advertising new channel 24 for topic "/driving_flag"
+[foxglove_bridge-11] [INFO] [1792170866.204269986] [foxglove_bridge]: Advertising new channel 25 for topic "/plugin/force_publisher/car_forces"
+[foxglove_bridge-11] [INFO] [1792170866.206360197] [foxglove_bridge]: Advertising new channel 26 for topic "/diagnostics"
+[foxglove_bridge-11] [INFO] [1792170866.206990513] [foxglove_bridge]: Advertising new channel 27 for topic "/sim/ros_can/state"
+[foxglove_bridge-11] [INFO] [1792170866.207039079] [foxglove_bridge]: Advertising new channel 28 for topic "/cones"
+[foxglove_bridge-11] [INFO] [1792170866.207079104] [foxglove_bridge]: Advertising new channel 29 for topic "/plugin/oss_plugin/oss/data"
+[foxglove_bridge-11] [INFO] [1792170866.207099793] [foxglove_bridge]: Advertising new channel 30 for topic "/map"
+[foxglove_bridge-11] [INFO] [1792170866.207113035] [foxglove_bridge]: Advertising new channel 31 for topic "/camera/cones"
+[foxglove_bridge-11] [INFO] [1792170866.823010359] [foxglove_bridge]: Advertising new channel 32 for topic "/cones_viz"
+[trackdrive_driver-10] [INFO] [1792170876.269993161] [autocross_driver]: DRIVING but not my mission (AUTOCROSS) -- idle.
+[accel_driver-7] [INFO] [1792170876.270027955] [accel_driver]: DRIVING but not my mission (ACCELERATION) -- idle.
+[skidpad_driver-8] [INFO] [1792170876.270217765] [skidpad_driver]: DRIVING but not my mission (SKIDPAD) -- idle.
+[trackdrive_driver-9] [INFO] [1792170876.271209669] [trackdrive_driver]: DRIVING -- go. 10 lap(s) to run.
