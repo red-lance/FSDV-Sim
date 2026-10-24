@@ -60,7 +60,7 @@ rebuilding.
 
 ```bash
 eufs sim run                              # terminal 1
-ros2 launch fs_autonomy autonomy.launch.py # terminal 2, AFTER the sim is up
+ros2 launch fs_autonomy autonomy.launch.py # terminal 2, After the sim is up
 ```
 
 `autonomy.launch.py` starts foxglove_bridge, cone_viz, and every mission
