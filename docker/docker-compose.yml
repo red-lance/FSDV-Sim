@@ -15,7 +15,10 @@ services:
     restart: unless-stopped
     environment:
       - ROS_DOMAIN_ID=42          # isolate from other ROS graphs on the same network
-      - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+      # CycloneDDS, not FastDDS: with network_mode=host, FastDDS discovers the
+      # host simulator's topics but the data channel doesn't resolve back into
+      # the container (confirmed by testing); CycloneDDS does not have this issue.
+      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
     volumes:
       # mount config read-only so params can be tuned on the target without rebuilding the image
       - ../src/fs_autonomy/config:/ws/src/fs_autonomy/config:ro

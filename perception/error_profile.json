@@ -1,0 +1,73 @@
+{
+  "meta": {
+    "weights": "best.pt",
+    "images": 6,
+    "focal_px_assumed": 700.0,
+    "cone_height_m": 0.325,
+    "conf_threshold": 0.25,
+    "note": "range axis approximate unless focal_px is calibrated"
+  },
+  "range_buckets_m": [
+    0.0,
+    2.5,
+    5.0,
+    7.5,
+    10.0,
+    12.5,
+    15.0,
+    20.0,
+    30.0
+  ],
+  "p_detect": [
+    1.0,
+    0.5909090909090909,
+    0.2631578947368421,
+    0.0,
+    null,
+    null,
+    null,
+    null
+  ],
+  "gt_per_bucket": [
+    15,
+    22,
+    19,
+    2,
+    0,
+    0,
+    0,
+    0
+  ],
+  "color_accuracy": [
+    1.0,
+    1.0,
+    1.0,
+    null,
+    null,
+    null,
+    null,
+    null
+  ],
+  "bearing_err_deg_mean": [
+    0.08964398495987043,
+    0.08166201128070404,
+    0.13667758301814342,
+    null,
+    null,
+    null,
+    null,
+    null
+  ],
+  "range_err_frac_mean": [
+    0.014043869675227881,
+    0.03048871266113731,
+    0.06045199544322043,
+    null,
+    null,
+    null,
+    null,
+    null
+  ],
+  "false_positives_per_image": 0.0,
+  "latency_ms_mean_THIS_MACHINE": 30.37402250053371
+}

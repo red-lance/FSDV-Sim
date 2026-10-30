@@ -11,7 +11,15 @@ FROM ros:humble-ros-base
 RUN apt-get update && apt-get install -y --no-install-recommends \
         git \
         python3-colcon-common-extensions \
+        ros-humble-rmw-cyclonedds-cpp \
     && rm -rf /var/lib/apt/lists/*
+
+# CycloneDDS, not the default FastDDS: with --net=host, FastDDS discovers the
+# host simulator's topics fine (SPDP/SEDP multicast) but the negotiated data
+# locators don't resolve back into the container, so nodes never receive any
+# data -- confirmed by testing (discovery-only vs discovery+data). CycloneDDS
+# does not have this failure mode in the same container setup.
+ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 
 WORKDIR /ws
 
